@@ -132,33 +132,29 @@
         <div class="ticket-preview">
           <h4>Order ticket</h4>
           <p class="ticket-meta">
-            <span>Cafeteria</span>
+            <span>Zemera Cafe and Restaurant</span>
             <span>Order #{{ lastOrder.id }}</span>
           </p>
-      <div class="summary-row total">
-        <span>Total amount</span>
-        <span>{{ totalAmount | currency: 'ETB':'symbol':'1.2-2' }}</span>
-      </div>
+          <p class="ticket-meta">
+            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
+            <span>Waiter: {{ lastOrder.waiter }}</span>
+          </p>
           <div class="ticket-items">
             @for (item of lastOrder.items; track item.id) {
               <div class="ticket-row">
                 <div>
                   <p class="name">{{ item.product }}</p>
-          <p class="ticket-meta">
-            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
-            <span>Waiter: {{ lastOrder.waiter }}</span>
-          </p>
-                </div>
                   <p class="meta">
                     {{ item.quantity }} {{ item.unit }} ×
                     {{ item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </p>
-              </div>
-            }
-          </div>
+                </div>
                 <div class="ticket-total">
                   {{ item.quantity * item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                 </div>
+              </div>
+            }
+          </div>
           <div class="ticket-footer">
             <span>Total</span>
             <span>{{ lastOrder.total | currency: 'ETB':'symbol':'1.2-2' }}</span>
@@ -168,6 +164,53 @@
       }
     </aside>
   </div>
+
+  @if (showPrintPrompt && lastOrder) {
+    <div class="print-dialog-backdrop">
+      <div class="print-dialog">
+        <h3>Print this order ticket?</h3>
+        <p class="print-dialog-text">
+          Order for waiter <strong>{{ lastOrder.waiter }}</strong> at
+          {{ lastOrder.createdAt | date: 'short' }}.
+        </p>
+        <div class="ticket-preview ticket-preview-small">
+          <h4>Order ticket</h4>
+          <p class="ticket-meta">
+            <span>Zemera Cafe and Restaurant</span>
+            <span>Order #{{ lastOrder.id }}</span>
+          </p>
+          <p class="ticket-meta">
+            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
+            <span>Waiter: {{ lastOrder.waiter }}</span>
+          </p>
+          <div class="ticket-items">
+            @for (item of lastOrder.items; track item.id) {
+              <div class="ticket-row">
+                <div>
+                  <p class="name">{{ item.product }}</p>
+                  <p class="meta">
+                    {{ item.quantity }} {{ item.unit }} ×
+                    {{ item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
+                  </p>
+                </div>
+                <div class="ticket-total">
+                  {{ item.quantity * item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
+                </div>
+              </div>
+            }
+          </div>
+          <div class="ticket-footer">
+            <span>Total</span>
+            <span>{{ lastOrder.total | currency: 'ETB':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+        <div class="print-dialog-actions">
+          <button type="button" class="primary" (click)="confirmPrintTicket()">Print ticket</button>
+          <button type="button" class="ghost" (click)="cancelFromPrintDialog()">Cancel order</button>
+        </div>
+      </div>
+    </div>
+  }
 </section>
 
 

@@ -25,6 +25,11 @@
     padding: 0 !important;
   }
 
+  /* Hide summary labels so only the ticket box prints */
+  .order-summary > *:not(.ticket-preview) {
+    display: none !important;
+  }
+
   .ticket-preview {
     display: block !important;
     width: 58mm; /* typical small receipt width */
@@ -46,6 +51,10 @@
   }
 
   button {
+    display: none !important;
+  }
+
+  .print-dialog-backdrop {
     display: none !important;
   }
 

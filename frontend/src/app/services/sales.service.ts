@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 export interface SaleRow {
   id: number;
+  orderId: number;
   item: string;
   qty: number;
   unit: string;
@@ -29,6 +30,10 @@ export class SalesService {
 
   getSales(): SaleRow[] {
     return this.sales.map((s) => ({ ...s }));
+  }
+
+  removeSalesByOrder(orderId: number): void {
+    this.sales = this.sales.filter((s) => s.orderId !== orderId);
   }
 }
 

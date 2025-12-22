@@ -36,6 +36,18 @@ export class InventoryService {
     item.stock = Math.max(0, item.stock - quantity);
     return { ...item };
   }
+
+  /**
+   * Increase stock for an item; used when undoing/cancelling an order.
+   */
+  increaseStock(name: string, quantity: number): InventoryItem | undefined {
+    const item = this.items.find((i) => i.name === name);
+    if (!item) {
+      return undefined;
+    }
+    item.stock += quantity;
+    return { ...item };
+  }
 }
 
 

@@ -61,6 +61,8 @@ export class OrdersComponent {
   orderError = '';
   lastOrder: FinalizedOrder | null = null;
   successMessage = '';
+  showPrintPrompt = false;
+  private lastOrderApplied = false;
 
   constructor(
     private inventoryService: InventoryService,
@@ -154,12 +156,15 @@ export class OrdersComponent {
       return;
     }
 
-    // Deduct stock using shared InventoryService and capture sales rows.
     const now = new Date();
+    const orderId = Date.now();
+
+    // Deduct stock using shared InventoryService and capture sales rows.
     const salesRows = this.items.map((item) => {
       this.inventoryService.decreaseStock(item.product, item.quantity);
 
       return {
+        orderId,
         item: item.product,
         qty: item.quantity,
         unit: item.unit,
@@ -173,7 +178,7 @@ export class OrdersComponent {
     this.salesService.addSales(salesRows);
 
     const finalized: FinalizedOrder = {
-      id: Date.now(),
+      id: orderId,
       waiter: this.header.waiterName.trim(),
       createdAt: now,
       items: this.items.map((i) => ({ ...i })),
@@ -181,7 +186,9 @@ export class OrdersComponent {
     };
 
     this.lastOrder = finalized;
-    this.successMessage = 'Order created and stock updated.';
+    this.lastOrderApplied = true;
+    this.successMessage = 'Order created and stock updated. Review and print the ticket.';
+    this.showPrintPrompt = true;
 
     this.resetItems();
   }
@@ -192,10 +199,35 @@ export class OrdersComponent {
   }
 
   cancelOrder(): void {
+    // Undo last order effects if applied.
+    if (this.lastOrder && this.lastOrderApplied) {
+      for (const item of this.lastOrder.items) {
+        this.inventoryService.increaseStock(item.product, item.quantity);
+      }
+      this.salesService.removeSalesByOrder(this.lastOrder.id);
+    }
+
     this.resetItems();
     this.header.waiterName = '';
     this.successMessage = '';
     this.orderError = '';
+    this.lastOrder = null;
+    this.showPrintPrompt = false;
+    this.lastOrderApplied = false;
+  }
+
+  confirmPrintTicket(): void {
+    if (!this.lastOrder) {
+      return;
+    }
+    this.printTicket();
+    this.showPrintPrompt = false;
+    // Once printed, we consider the order final and do not auto-undo on cancel.
+    this.lastOrderApplied = false;
+  }
+
+  cancelFromPrintDialog(): void {
+    this.cancelOrder();
   }
 
   private resetItems(): void {
