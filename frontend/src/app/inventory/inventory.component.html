@@ -30,6 +30,7 @@
         <tr>
           <th>Product name</th>
           <th>Category</th>
+          <th>Subcategory</th>
           <th>Current stock</th>
           <th>Unit</th>
           <th>Status</th>
@@ -40,6 +41,7 @@
           <tr>
             <td>{{ row.name }}</td>
             <td>{{ row.category }}</td>
+            <td>{{ row.subcategory || '—' }}</td>
             <td class="numeric">{{ row.stock }}</td>
             <td>{{ row.unit }}</td>
             <td>

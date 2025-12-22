@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 interface InventoryRow {
   name: string;
   category: string;
+  subcategory?: string;
   stock: number;
   unit: string;
 }
@@ -18,9 +19,13 @@ interface InventoryRow {
 })
 export class InventoryComponent {
   rows: InventoryRow[] = [
-    { name: 'Thermal Paper Rolls', category: 'POS Supplies', stock: 120, unit: 'pcs' },
-    { name: 'Barcode Labels 4x6', category: 'POS Supplies', stock: 18, unit: 'pcs' },
-    { name: 'POS Receipt Printer', category: 'Hardware', stock: 0, unit: 'units' }
+    { name: 'Dashen Beer', category: 'Beer', subcategory: 'Dashen', stock: 24, unit: 'pcs' },
+    { name: 'Harar Beer', category: 'Beer', subcategory: 'Harar', stock: 18, unit: 'pcs' },
+    { name: 'Water 0.5L', category: 'Water', subcategory: '0.5 L', stock: 30, unit: 'pcs' },
+    { name: 'Water 1L', category: 'Water', subcategory: '1 L', stock: 12, unit: 'pcs' },
+    { name: 'Areke Dagusa', category: 'Traditional Drinks', subcategory: 'Dagusa', stock: 5, unit: 'L' },
+    { name: 'Areke Gibto', category: 'Traditional Drinks', subcategory: 'Gibto', stock: 3, unit: 'L' },
+    { name: 'Floor Cleaner', category: 'Cleaning Materials', subcategory: 'Floor cleaner', stock: 5, unit: 'L' }
   ];
 
   search = '';

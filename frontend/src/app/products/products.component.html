@@ -5,7 +5,7 @@
   </div>
 
   <div class="product-layout">
-    <div class="product-table-card">
+        <div class="product-table-card">
       <div class="table-header">
         <h3>Product list</h3>
         <span class="table-hint">Click edit to update details (unit locked during edit).</span>
@@ -15,11 +15,13 @@
           <thead>
             <tr>
               <th>Product Name</th>
-              <th>Category</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
               <th>Unit</th>
               <th>Buying Price</th>
               <th>Selling Price</th>
               <th>Current Stock</th>
+                    <th>Sellable</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -27,11 +29,13 @@
             @for (product of products; track product.id) {
               <tr>
                 <td>{{ product.name }}</td>
-                <td>{{ product.category }}</td>
+                      <td>{{ product.categoryName }}</td>
+                      <td>{{ product.subcategory || '—' }}</td>
                 <td>{{ product.unit }}</td>
                 <td>{{ product.buyingPrice | currency: 'USD':'symbol':'1.2-2' }}</td>
                 <td>{{ product.sellingPrice | currency: 'USD':'symbol':'1.2-2' }}</td>
                 <td>{{ product.stock | number }}</td>
+                      <td>{{ product.sellable ? 'Yes' : 'No' }}</td>
                 <td>
                   <button class="link-btn" (click)="startEdit(product.id)">Edit</button>
                 </td>
@@ -67,7 +71,7 @@
             name="name"
             [(ngModel)]="productForm.name"
             type="text"
-            placeholder="e.g., Barcode Labels 4x6"
+            placeholder="e.g., Dashen Beer, Water 0.5L, Tibs"
             required
           />
           @if (formErrors['name']) {
@@ -77,14 +81,33 @@
 
         <label>
           <span>Category</span>
-          <select name="category" [(ngModel)]="productForm.category" required>
+          <select name="categoryId" [(ngModel)]="productForm.categoryId" required>
             <option value="" disabled>Select category</option>
-            @for (cat of productCategories; track cat) {
-              <option [value]="cat">{{ cat }}</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
             }
           </select>
           @if (formErrors['category']) {
             <span class="error">{{ formErrors['category'] }}</span>
+          }
+        </label>
+
+        <label>
+          <span>Subcategory</span>
+          <select
+            name="subcategory"
+            [(ngModel)]="productForm.subcategory"
+            [disabled]="!selectedCategory || availableSubcategories.length === 0"
+          >
+            <option value="" disabled>
+              {{ availableSubcategories.length ? 'Select subcategory' : 'No subcategories' }}
+            </option>
+            @for (sub of availableSubcategories; track sub) {
+              <option [value]="sub">{{ sub }}</option>
+            }
+          </select>
+          @if (formErrors['subcategory']) {
+            <span class="error">{{ formErrors['subcategory'] }}</span>
           }
         </label>
 
@@ -97,7 +120,7 @@
             required
           >
             <option value="" disabled>Select unit</option>
-            @for (unit of productUnits; track unit) {
+            @for (unit of availableUnits; track unit) {
               <option [value]="unit">{{ unit }}</option>
             }
           </select>
@@ -139,6 +162,21 @@
             }
           </label>
         </div>
+
+        <label>
+          <span>Sellable</span>
+          <select
+            name="sellable"
+            [(ngModel)]="productForm.sellable"
+            [disabled]="selectedCategory?.id === 'cleaning'"
+          >
+            <option [ngValue]="true">Yes</option>
+            <option [ngValue]="false">No</option>
+          </select>
+          @if (selectedCategory?.id === 'cleaning') {
+            <span class="field-note">Cleaning materials are always non-sellable.</span>
+          }
+        </label>
 
         @if (editingProductId === null) {
           <label>
