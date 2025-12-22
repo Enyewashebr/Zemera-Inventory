@@ -1,36 +1,77 @@
 package com.zemera.inventory;
 
+import com.zemera.inventory.handler.OrderHandler;
+import com.zemera.inventory.service.OrderService;
+import com.zemera.inventory.repository.OrderRepository;
+import com.zemera.inventory.repository.ProductRepository;
+import com.zemera.inventory.db.PgClientFactory;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Promise;
-import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
-// import io.vertx.ext.web.Router;
-// import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.pgclient.PgPool;
 
 public class MainVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
 
-    private void loadConfig(Handler<AsyncResult<JsonObject>> handler) {
+    @Override
+    public void start(Promise<Void> startPromise) {
+        loadConfig().future().onComplete(ar -> {
+            if (ar.failed()) {
+                LOGGER.error("Failed to load configuration", ar.cause());
+                startPromise.fail(ar.cause());
+                return;
+            }
 
-  ConfigStoreOptions fileStore = new ConfigStoreOptions()
-    .setType("file")
-    .setFormat("json")
-    .setConfig(new JsonObject().put("path", "application.json"));
+            JsonObject config = ar.result();
+            int httpPort = config.getJsonObject("http", new JsonObject())
+                .getInteger("port", 8080);
 
-  ConfigRetrieverOptions options = new ConfigRetrieverOptions()
-    .addStore(fileStore);
+            PgPool client = PgClientFactory.createPool(vertx, config.getJsonObject("db", new JsonObject()));
 
-  ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
+            ProductRepository productRepository = new ProductRepository(client);
+            OrderRepository orderRepository = new OrderRepository(client);
+            OrderService orderService = new OrderService(productRepository, orderRepository);
+            OrderHandler orderHandler = new OrderHandler(orderService);
 
-  retriever.getConfig(handler);
-}
+            Router router = Router.router(vertx);
+            router.route().handler(BodyHandler.create());
 
+            // Simple CORS for Angular localhost
+            router.route().handler(ctx -> {
+                ctx.response()
+                    .putHeader("Access-Control-Allow-Origin", "http://localhost:4200")
+                    .putHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+                    .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                if ("OPTIONS".equals(ctx.request().method().name())) {
+                    ctx.response().setStatusCode(204).end();
+                } else {
+                    ctx.next();
+                }
+            });
+
+            // Health
+            router.get("/api/health").handler(ctx -> ctx.json(new JsonObject().put("status", "ok")));
+
+            // Orders
+            router.post("/api/orders").handler(orderHandler::createOrder);
+
+            vertx.createHttpServer()
+                .requestHandler(router)
+                .listen(httpPort)
+                .onSuccess(server -> {
+                    LOGGER.info("HTTP server started on port " + server.actualPort());
+                    startPromise.complete();
+                })
+                .onFailure(startPromise::fail);
+        });
+    }
 
     private Promise<JsonObject> loadConfig() {
         ConfigStoreOptions envStore = new ConfigStoreOptions()
@@ -41,7 +82,7 @@ public class MainVerticle extends AbstractVerticle {
             .setType("file")
             .setFormat("hocon")
             .setOptional(true)
-            .setConfig(new JsonObject().put("path", "application.j"));
+            .setConfig(new JsonObject().put("path", "application.conf"));
 
         ConfigRetrieverOptions options = new ConfigRetrieverOptions()
             .addStore(envStore)
@@ -58,5 +99,3 @@ public class MainVerticle extends AbstractVerticle {
         return promise;
     }
 }
-
-
