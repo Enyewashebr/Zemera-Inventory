@@ -30,10 +30,23 @@ public class MainVerticle extends AbstractVerticle {
             }
 
             JsonObject config = ar.result();
-            int httpPort = config.getJsonObject("http", new JsonObject())
-                .getInteger("port", 8080);
 
-            PgPool client = PgClientFactory.createPool(vertx, config.getJsonObject("db", new JsonObject()));
+            // HTTP port: prefer env HTTP_PORT, then config.http.port, then 8080
+            int httpPort = config.getInteger("HTTP_PORT",
+                config.getJsonObject("http", new JsonObject()).getInteger("port", 8080));
+
+            // DB config: prefer nested "db" object, otherwise fall back to flat env vars
+            JsonObject dbConfig = config.getJsonObject("db", new JsonObject());
+            if (dbConfig.isEmpty()) {
+                dbConfig
+                    .put("host", config.getString("DB_HOST", "localhost"))
+                    .put("port", config.getInteger("DB_PORT", 5432))
+                    .put("database", config.getString("DB_NAME", "postgres"))
+                    .put("user", config.getString("DB_USER", "postgres"))
+                    .put("password", config.getString("DB_PASSWORD", "postgres"));
+            }
+
+            PgPool client = PgClientFactory.createPool(vertx, dbConfig);
 
             ProductRepository productRepository = new ProductRepository(client);
             OrderRepository orderRepository = new OrderRepository(client);
@@ -56,8 +69,31 @@ public class MainVerticle extends AbstractVerticle {
                 }
             });
 
-            // Health
+            // Simple health
             router.get("/api/health").handler(ctx -> ctx.json(new JsonObject().put("status", "ok")));
+
+            // DB health: run a lightweight SELECT 1 to verify connection
+            router.get("/api/db-health").handler(ctx ->
+                client
+                    .query("SELECT 1")
+                    .execute(dbAr -> {
+                        if (dbAr.succeeded()) {
+                            ctx.json(new JsonObject()
+                                .put("status", "ok")
+                                .put("db", "connected"));
+                        } else {
+                            LOGGER.error("DB health check failed", dbAr.cause());
+                            ctx.response()
+                                .setStatusCode(500)
+                                .putHeader("Content-Type", "application/json")
+                                .end(new JsonObject()
+                                    .put("status", "error")
+                                    .put("db", "unreachable")
+                                    .put("message", "Database connection failed")
+                                    .encode());
+                        }
+                    })
+            );
 
             // Orders
             router.post("/api/orders").handler(orderHandler::createOrder);
