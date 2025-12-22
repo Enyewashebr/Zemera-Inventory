@@ -1,7 +1,12 @@
 import { Routes } from '@angular/router';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { InventoryComponent } from './inventory/inventory.component';
 import { LayoutComponent } from './layout/layout.component';
+import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
+import { PurchasesComponent } from './purchases/purchases.component';
+import { ReportsComponent } from './reports/reports.component';
+import { SettingsComponent } from './settings/settings.component';
 
 export const routes: Routes = [
   {
@@ -11,12 +16,11 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'products', component: ProductsComponent },
-      // Temporary placeholders until dedicated components are created
-      { path: 'purchases', component: DashboardComponent },
-      { path: 'orders', component: DashboardComponent },
-      { path: 'inventory', component: DashboardComponent },
-      { path: 'reports', component: DashboardComponent },
-      { path: 'settings', component: DashboardComponent }
+      { path: 'purchases', component: PurchasesComponent },
+      { path: 'orders', component: OrdersComponent },
+      { path: 'inventory', component: InventoryComponent },
+      { path: 'reports', component: ReportsComponent },
+      { path: 'settings', component: SettingsComponent }
     ]
   }
 ];

@@ -1,0 +1,173 @@
+<section class="orders">
+  <div class="section-header">
+    <h2>Orders & sales</h2>
+    <p>Create customer orders, respect stock limits, and print tickets.</p>
+  </div>
+
+  <div class="order-layout">
+    <div class="order-main">
+      <div class="order-header">
+        <div class="field">
+          <label>
+            <span>Waiter name *</span>
+            <input
+              name="waiterName"
+              type="text"
+              [(ngModel)]="header.waiterName"
+              placeholder="e.g., John"
+            />
+          </label>
+          @if (formErrors['waiterName']) {
+            <span class="error">{{ formErrors['waiterName'] }}</span>
+          }
+        </div>
+        <div class="field readonly">
+          <span class="label">Order date & time</span>
+          <span class="value">{{ header.createdAt | date: 'medium' }}</span>
+        </div>
+      </div>
+
+      <div class="items-card">
+        <div class="items-header">
+          <h3>Order items</h3>
+          <button type="button" class="ghost small" (click)="addRow()">Add item</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Available stock</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Unit price</th>
+                <th>Total price</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of items; track item.id) {
+                <tr>
+                  <td>
+                    <select
+                      [(ngModel)]="item.product"
+                      (ngModelChange)="onProductChange(item)"
+                    >
+                      <option value="" disabled>Select product</option>
+                      @for (p of products; track p.name) {
+                        <option [value]="p.name">{{ p.name }}</option>
+                      }
+                    </select>
+                  </td>
+                  <td class="numeric">
+                    {{ item.availableStock || 0 }}
+                  </td>
+                  <td class="numeric">
+                    <input
+                      type="number"
+                      min="1"
+                      [max]="item.availableStock"
+                      [(ngModel)]="item.quantity"
+                    />
+                  </td>
+                  <td>{{ item.unit || '—' }}</td>
+                  <td class="numeric">
+                    {{ item.unitPrice || 0 | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td class="numeric">
+                    {{ itemTotal(item) | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="link-btn"
+                      (click)="removeRow(item.id)"
+                      [disabled]="items.length === 1"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (orderError) {
+          <div class="error-banner">{{ orderError }}</div>
+        }
+      </div>
+    </div>
+
+    <aside class="order-summary">
+      <h3>Order summary</h3>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ subtotal | currency: 'USD':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Total items</span>
+        <span>{{ totalItems }}</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total amount</span>
+        <span>{{ totalAmount | currency: 'USD':'symbol':'1.2-2' }}</span>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="primary" (click)="createOrder()">Create order</button>
+        <button
+          type="button"
+          class="ghost"
+          [disabled]="!lastOrder"
+          (click)="printTicket()"
+        >
+          Print ticket
+        </button>
+        <button type="button" class="ghost" (click)="cancelOrder()">Cancel order</button>
+      </div>
+
+      @if (successMessage) {
+        <div class="success">{{ successMessage }}</div>
+      }
+
+      @if (lastOrder) {
+        <div class="ticket-preview">
+          <h4>Order ticket</h4>
+          <p class="ticket-meta">
+            <span>Cafeteria</span>
+            <span>Order #{{ lastOrder.id }}</span>
+          </p>
+          <p class="ticket-meta">
+            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
+            <span>Waiter: {{ lastOrder.waiter }}</span>
+          </p>
+          <div class="ticket-items">
+            @for (item of lastOrder.items; track item.id) {
+              <div class="ticket-row">
+                <div>
+                  <p class="name">{{ item.product }}</p>
+                  <p class="meta">
+                    {{ item.quantity }} {{ item.unit }} ×
+                    {{ item.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                  </p>
+                </div>
+                <div class="ticket-total">
+                  {{ item.quantity * item.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                </div>
+              </div>
+            }
+          </div>
+          <div class="ticket-footer">
+            <span>Total</span>
+            <span>{{ lastOrder.total | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <button type="button" class="ghost small" (click)="printTicket()">Print again</button>
+        </div>
+      }
+    </aside>
+  </div>
+</section>
+
+

@@ -1,0 +1,173 @@
+<section class="reports">
+  <div class="section-header">
+    <h2>Reports</h2>
+    <p>View daily performance and download summaries.</p>
+  </div>
+
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'sales'"
+      (click)="activeTab = 'sales'"
+    >
+      Daily sales
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'purchases'"
+      (click)="activeTab = 'purchases'"
+    >
+      Daily purchases
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'profit'"
+      (click)="activeTab = 'profit'"
+    >
+      Profit
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'monthly'"
+      (click)="activeTab = 'monthly'"
+    >
+      Monthly
+    </button>
+  </div>
+
+  <div class="tab-body">
+    @if (activeTab === 'sales') {
+      <div class="card">
+        <div class="filters">
+          <label>
+            <span>Date</span>
+            <input
+              type="date"
+              [(ngModel)]="salesFilterDate"
+            />
+          </label>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Item name</th>
+                <th>Quantity sold</th>
+                <th>Unit</th>
+                <th>Unit price</th>
+                <th>Total price</th>
+                <th>Remaining stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of salesRows; track row.item) {
+                <tr>
+                  <td>{{ row.item }}</td>
+                  <td class="numeric">{{ row.qty }}</td>
+                  <td>{{ row.unit }}</td>
+                  <td class="numeric">
+                    {{ row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td class="numeric">
+                    {{ row.qty * row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td class="numeric">{{ row.remaining }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    } @else if (activeTab === 'purchases') {
+      <div class="card">
+        <div class="filters">
+          <label>
+            <span>Date</span>
+            <input
+              type="date"
+              [(ngModel)]="purchaseFilterDate"
+            />
+          </label>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Item name</th>
+                <th>Quantity purchased</th>
+                <th>Unit</th>
+                <th>Unit price</th>
+                <th>Total cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of purchaseRows; track row.item) {
+                <tr>
+                  <td>{{ row.item }}</td>
+                  <td class="numeric">{{ row.qty }}</td>
+                  <td>{{ row.unit }}</td>
+                  <td class="numeric">
+                    {{ row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td class="numeric">
+                    {{ row.qty * row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    } @else if (activeTab === 'profit') {
+      <div class="card profit-card">
+        <h3>Profit report</h3>
+        <div class="profit-grid">
+          <div class="metric">
+            <span class="label">Total sales</span>
+            <span class="value">{{ totalSales | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="metric">
+            <span class="label">Total purchases</span>
+            <span class="value">{{ totalPurchases | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="metric">
+            <span class="label">Profit</span>
+            <span class="value">{{ profit | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="card">
+        <div class="filters">
+          <label>
+            <span>Month</span>
+            <input
+              type="month"
+              [(ngModel)]="monthlyFilterMonth"
+            />
+          </label>
+        </div>
+        <div class="monthly-summary">
+          <div class="metric">
+            <span class="label">Monthly profit</span>
+            <span class="value">{{ profit | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="metric">
+            <span class="label">Stock summary</span>
+            <span class="value">Demo data</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="download-bar">
+    <span class="label">Report download</span>
+    <div class="buttons">
+      <button type="button" class="ghost" (click)="download('pdf')">Download PDF</button>
+      <button type="button" class="ghost" (click)="download('xls')">Download Excel</button>
+    </div>
+  </div>
+</section>
+
+

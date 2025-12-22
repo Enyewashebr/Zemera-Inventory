@@ -1,0 +1,135 @@
+<section class="purchases">
+  <div class="section-header">
+    <h2>Purchase management</h2>
+    <p>Record incoming stock with clear, read-only history.</p>
+  </div>
+
+  <div class="layout">
+    <div class="form-card">
+      <h3>Add purchase</h3>
+      <p class="hint">All required fields are marked with * and validated in real time.</p>
+
+      <form (ngSubmit)="savePurchase()" class="purchase-form">
+        <label>
+          <span>Product *</span>
+          <select name="product" [(ngModel)]="form.product" required>
+            <option value="" disabled>Select product</option>
+            @for (p of products; track p.name) {
+              <option [value]="p.name">{{ p.name }}</option>
+            }
+          </select>
+          @if (formErrors['product']) {
+            <span class="error">{{ formErrors['product'] }}</span>
+          }
+        </label>
+
+        <div class="form-grid">
+          <label>
+            <span>Quantity *</span>
+            <input
+              name="quantity"
+              type="number"
+              min="1"
+              step="1"
+              [(ngModel)]="form.quantity"
+              required
+            />
+            @if (formErrors['quantity']) {
+              <span class="error">{{ formErrors['quantity'] }}</span>
+            }
+          </label>
+
+          <label>
+            <span>Unit price *</span>
+            <input
+              name="unitPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="form.unitPrice"
+              required
+            />
+            @if (formErrors['unitPrice']) {
+              <span class="error">{{ formErrors['unitPrice'] }}</span>
+            }
+          </label>
+        </div>
+
+        <label>
+          <span>Purchase date *</span>
+          <input
+            name="date"
+            type="date"
+            [(ngModel)]="form.date"
+            required
+          />
+          @if (formErrors['date']) {
+            <span class="error">{{ formErrors['date'] }}</span>
+          }
+        </label>
+
+        <div class="auto-row">
+          <div>
+            <span class="auto-label">Unit</span>
+            <span class="auto-value">{{ selectedProductUnit || '—' }}</span>
+            @if (formErrors['unit']) {
+              <span class="error">{{ formErrors['unit'] }}</span>
+            }
+          </div>
+          <div>
+            <span class="auto-label">Total cost</span>
+            <span class="auto-value">{{ totalCost | currency: 'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Save purchase</button>
+          <button type="button" class="ghost" (click)="clearForm()">Clear form</button>
+        </div>
+
+        @if (successMessage) {
+          <div class="success">{{ successMessage }}</div>
+        }
+      </form>
+    </div>
+
+    <div class="history-card">
+      <h3>Purchase history</h3>
+      <p class="hint">Rows are read-only to preserve transaction integrity.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Unit price</th>
+              <th>Total cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of purchases; track row.id) {
+              <tr>
+                <td>{{ row.date }}</td>
+                <td>{{ row.product }}</td>
+                <td>{{ row.quantity }}</td>
+                <td>{{ row.unit }}</td>
+                <td>{{ row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}</td>
+                <td>{{ row.totalCost | currency: 'USD':'symbol':'1.2-2' }}</td>
+              </tr>
+            }
+            @if (purchases.length === 0) {
+              <tr>
+                <td colspan="6" class="empty-row">No purchases recorded yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
