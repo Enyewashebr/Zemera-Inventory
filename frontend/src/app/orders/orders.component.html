@@ -130,15 +130,16 @@
 
       @if (lastOrder) {
         <div class="ticket-preview">
-          <h4>Order ticket</h4>
-          <p class="ticket-meta">
-            <span>Zemera Cafe and Restaurant</span>
-            <span>Order #{{ lastOrder.id }}</span>
-          </p>
-          <p class="ticket-meta">
-            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
-            <span>Waiter: {{ lastOrder.waiter }}</span>
-          </p>
+          <div class="ticket-header">
+            <div class="ticket-business">Zemera Cafe and Restaurant</div>
+            <div class="ticket-line">
+              <span>Order: #{{ lastOrder.id }}</span>
+              <span>Waiter: {{ lastOrder.waiter }}</span>
+            </div>
+            <div class="ticket-line">
+              <span>{{ lastOrder.createdAt | date: 'short' }}</span>
+            </div>
+          </div>
           <div class="ticket-items">
             @for (item of lastOrder.items; track item.id) {
               <div class="ticket-row">
@@ -174,15 +175,16 @@
           {{ lastOrder.createdAt | date: 'short' }}.
         </p>
         <div class="ticket-preview ticket-preview-small">
-          <h4>Order ticket</h4>
-          <p class="ticket-meta">
-            <span>Zemera Cafe and Restaurant</span>
-            <span>Order #{{ lastOrder.id }}</span>
-          </p>
-          <p class="ticket-meta">
-            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
-            <span>Waiter: {{ lastOrder.waiter }}</span>
-          </p>
+          <div class="ticket-header">
+            <div class="ticket-business">Zemera Cafe and Restaurant</div>
+            <div class="ticket-line">
+              <span>Order: #{{ lastOrder.id }}</span>
+              <span>Waiter: {{ lastOrder.waiter }}</span>
+            </div>
+            <div class="ticket-line">
+              <span>{{ lastOrder.createdAt | date: 'short' }}</span>
+            </div>
+          </div>
           <div class="ticket-items">
             @for (item of lastOrder.items; track item.id) {
               <div class="ticket-row">

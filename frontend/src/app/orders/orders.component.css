@@ -157,7 +157,7 @@ td input {
 }
 
 .order-summary {
-  background: #06498c;
+  background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   padding: 1rem;
@@ -238,24 +238,35 @@ td input {
 
 .ticket-preview {
   margin-top: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 10px;
-  border: 1px dashed #cbd5e1;
+  padding: 0.9rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
   background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  font-size: 0.86rem;
 }
 
-.ticket-preview h4 {
-  margin: 0;
+.ticket-header {
+  text-align: center;
+  border-bottom: 1px dashed #e5e7eb;
+  padding-bottom: 0.45rem;
 }
 
-.ticket-meta {
+.ticket-business {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.ticket-line {
   display: flex;
   justify-content: space-between;
-  font-size: 0.88rem;
-  color: #64748b;
-  margin: 0;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
 }
 
 .ticket-items {
