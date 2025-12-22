@@ -73,10 +73,10 @@
                   </td>
                   <td>{{ item.unit || '—' }}</td>
                   <td class="numeric">
-                    {{ item.unitPrice || 0 | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ item.unitPrice || 0 | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
                   <td class="numeric">
-                    {{ itemTotal(item) | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ itemTotal(item) | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
                   <td>
                     <button
@@ -103,16 +103,12 @@
     <aside class="order-summary">
       <h3>Order summary</h3>
       <div class="summary-row">
-        <span>Subtotal</span>
-        <span>{{ subtotal | currency: 'USD':'symbol':'1.2-2' }}</span>
-      </div>
-      <div class="summary-row">
         <span>Total items</span>
         <span>{{ totalItems }}</span>
       </div>
-      <div class="summary-row total">
-        <span>Total amount</span>
-        <span>{{ totalAmount | currency: 'USD':'symbol':'1.2-2' }}</span>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ subtotal | currency: 'ETB':'symbol':'1.2-2' }}</span>
       </div>
 
       <div class="actions">
@@ -139,29 +135,33 @@
             <span>Cafeteria</span>
             <span>Order #{{ lastOrder.id }}</span>
           </p>
-          <p class="ticket-meta">
-            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
-            <span>Waiter: {{ lastOrder.waiter }}</span>
-          </p>
+      <div class="summary-row total">
+        <span>Total amount</span>
+        <span>{{ totalAmount | currency: 'ETB':'symbol':'1.2-2' }}</span>
+      </div>
           <div class="ticket-items">
             @for (item of lastOrder.items; track item.id) {
               <div class="ticket-row">
                 <div>
                   <p class="name">{{ item.product }}</p>
+          <p class="ticket-meta">
+            <span>{{ lastOrder.createdAt | date: 'medium' }}</span>
+            <span>Waiter: {{ lastOrder.waiter }}</span>
+          </p>
+                </div>
                   <p class="meta">
                     {{ item.quantity }} {{ item.unit }} ×
-                    {{ item.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </p>
-                </div>
-                <div class="ticket-total">
-                  {{ item.quantity * item.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
-                </div>
               </div>
             }
           </div>
+                <div class="ticket-total">
+                  {{ item.quantity * item.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
+                </div>
           <div class="ticket-footer">
             <span>Total</span>
-            <span>{{ lastOrder.total | currency: 'USD':'symbol':'1.2-2' }}</span>
+            <span>{{ lastOrder.total | currency: 'ETB':'symbol':'1.2-2' }}</span>
           </div>
           <button type="button" class="ghost small" (click)="printTicket()">Print again</button>
         </div>
@@ -169,5 +169,8 @@
     </aside>
   </div>
 </section>
+
+
+
 
 

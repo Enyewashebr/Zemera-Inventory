@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SalesService, SaleRow } from '../services/sales.service';
 
 @Component({
   selector: 'app-reports',
@@ -18,11 +19,11 @@ export class ReportsComponent {
     new Date().getMonth() + 1
   ).padStart(2, '0')}`;
 
-  // Mock data
-  salesRows = [
-    { item: 'Thermal Paper Rolls', qty: 40, unit: 'pcs', unitPrice: 1.8, remaining: 80 },
-    { item: 'Barcode Labels 4x6', qty: 10, unit: 'pcs', unitPrice: 8.5, remaining: 8 }
-  ];
+  constructor(private salesService: SalesService) {}
+
+  get salesRows(): SaleRow[] {
+    return this.salesService.getSales();
+  }
 
   purchaseRows = [
     { item: 'Thermal Paper Rolls', qty: 100, unit: 'pcs', unitPrice: 0.9 },
@@ -30,7 +31,7 @@ export class ReportsComponent {
   ];
 
   get totalSales(): number {
-    return this.salesRows.reduce((sum, r) => sum + r.qty * r.unitPrice, 0);
+    return this.salesRows.reduce((sum, r) => sum + r.totalPrice, 0);
   }
 
   get totalPurchases(): number {
@@ -46,5 +47,8 @@ export class ReportsComponent {
     alert(`Generating ${format.toUpperCase()} for selected period...`);
   }
 }
+
+
+
 
 

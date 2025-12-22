@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { InventoryService } from '../services/inventory.service';
+import { SalesService } from '../services/sales.service';
 
 interface OrderItem {
   id: number;
@@ -28,16 +30,12 @@ interface FinalizedOrder {
 })
 export class OrdersComponent {
   products = [
-    // Beer
     { name: 'Dashen Beer', category: 'Beer', unit: 'pcs', price: 60, stock: 24 },
     { name: 'Harar Beer', category: 'Beer', unit: 'pcs', price: 55, stock: 18 },
-    // Water
     { name: 'Water 0.5L', category: 'Water', unit: 'pcs', price: 20, stock: 30 },
     { name: 'Water 1L', category: 'Water', unit: 'pcs', price: 25, stock: 12 },
-    // Traditional drinks
     { name: 'Areke Dagusa', category: 'Traditional Drinks', unit: 'shot', price: 30, stock: 50 },
     { name: 'Tej Glass', category: 'Traditional Drinks', unit: 'glass', price: 40, stock: 40 },
-    // Foods for Sale
     { name: 'Tibs (kg)', category: 'Foods for Sale', unit: 'kg', price: 1200, stock: 6.5 },
     { name: 'Shiro (plate)', category: 'Foods for Sale', unit: 'plate', price: 80, stock: 20 }
   ];
@@ -63,6 +61,11 @@ export class OrdersComponent {
   orderError = '';
   lastOrder: FinalizedOrder | null = null;
   successMessage = '';
+
+  constructor(
+    private inventoryService: InventoryService,
+    private salesService: SalesService
+  ) {}
 
   get subtotal(): number {
     return this.items.reduce((sum, item) => sum + this.itemTotal(item), 0);
@@ -151,19 +154,28 @@ export class OrdersComponent {
       return;
     }
 
-    // Deduct stock locally to simulate real-time stock update.
-    this.items.forEach((item) => {
-      const product = this.products.find((p) => p.name === item.product);
-      if (product) {
-        product.stock = Math.max(0, product.stock - item.quantity);
-        item.availableStock = product.stock;
-      }
+    // Deduct stock using shared InventoryService and capture sales rows.
+    const now = new Date();
+    const salesRows = this.items.map((item) => {
+      this.inventoryService.decreaseStock(item.product, item.quantity);
+
+      return {
+        item: item.product,
+        qty: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        totalPrice: this.itemTotal(item),
+        waiter: this.header.waiterName.trim(),
+        timestamp: now
+      };
     });
+
+    this.salesService.addSales(salesRows);
 
     const finalized: FinalizedOrder = {
       id: Date.now(),
       waiter: this.header.waiterName.trim(),
-      createdAt: new Date(),
+      createdAt: now,
       items: this.items.map((i) => ({ ...i })),
       total: this.totalAmount
     };

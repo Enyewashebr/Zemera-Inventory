@@ -19,9 +19,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ];
 
   dashboardMetrics = [
-    { id: 'sales', label: 'Total Sales (Today)', value: 18250, unit: 'USD', path: '/orders' },
-    { id: 'purchases', label: 'Total Purchases (Today)', value: 9420, unit: 'USD', path: '/purchases' },
-    { id: 'profit', label: 'Estimated Profit (Today)', value: 8830, unit: 'USD', path: '/reports' },
+    { id: 'sales', label: 'Total Sales (Today)', value: 18250, unit: 'ETB', path: '/orders' },
+    { id: 'purchases', label: 'Total Purchases (Today)', value: 9420, unit: 'ETB', path: '/purchases' },
+    { id: 'profit', label: 'Estimated Profit (Today)', value: 8830, unit: 'ETB', path: '/reports' },
     { id: 'orders', label: 'Total Orders (Today)', value: 68, unit: 'orders', path: '/orders' }
   ];
 
@@ -73,5 +73,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }
+
+
+
 
 

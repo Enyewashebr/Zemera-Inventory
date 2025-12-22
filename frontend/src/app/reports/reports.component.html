@@ -56,22 +56,24 @@
                 <th>Unit</th>
                 <th>Unit price</th>
                 <th>Total price</th>
-                <th>Remaining stock</th>
+                <th>Waiter</th>
+                <th>Sold at</th>
               </tr>
             </thead>
             <tbody>
-              @for (row of salesRows; track row.item) {
+              @for (row of salesRows; track row.id) {
                 <tr>
                   <td>{{ row.item }}</td>
                   <td class="numeric">{{ row.qty }}</td>
                   <td>{{ row.unit }}</td>
                   <td class="numeric">
-                    {{ row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
                   <td class="numeric">
-                    {{ row.qty * row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ row.totalPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
-                  <td class="numeric">{{ row.remaining }}</td>
+                  <td>{{ row.waiter }}</td>
+                  <td>{{ row.timestamp | date: 'short' }}</td>
                 </tr>
               }
             </tbody>
@@ -107,10 +109,10 @@
                   <td class="numeric">{{ row.qty }}</td>
                   <td>{{ row.unit }}</td>
                   <td class="numeric">
-                    {{ row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
                   <td class="numeric">
-                    {{ row.qty * row.unitPrice | currency: 'USD':'symbol':'1.2-2' }}
+                    {{ row.qty * row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
                   </td>
                 </tr>
               }
@@ -124,15 +126,15 @@
         <div class="profit-grid">
           <div class="metric">
             <span class="label">Total sales</span>
-            <span class="value">{{ totalSales | currency: 'USD':'symbol':'1.2-2' }}</span>
+            <span class="value">{{ totalSales | currency: 'ETB':'symbol':'1.2-2' }}</span>
           </div>
           <div class="metric">
             <span class="label">Total purchases</span>
-            <span class="value">{{ totalPurchases | currency: 'USD':'symbol':'1.2-2' }}</span>
+            <span class="value">{{ totalPurchases | currency: 'ETB':'symbol':'1.2-2' }}</span>
           </div>
           <div class="metric">
             <span class="label">Profit</span>
-            <span class="value">{{ profit | currency: 'USD':'symbol':'1.2-2' }}</span>
+            <span class="value">{{ profit | currency: 'ETB':'symbol':'1.2-2' }}</span>
           </div>
         </div>
       </div>
@@ -150,7 +152,7 @@
         <div class="monthly-summary">
           <div class="metric">
             <span class="label">Monthly profit</span>
-            <span class="value">{{ profit | currency: 'USD':'symbol':'1.2-2' }}</span>
+            <span class="value">{{ profit | currency: 'ETB':'symbol':'1.2-2' }}</span>
           </div>
           <div class="metric">
             <span class="label">Stock summary</span>
@@ -169,5 +171,8 @@
     </div>
   </div>
 </section>
+
+
+
 
 

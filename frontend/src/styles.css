@@ -1,2 +1,57 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* Print styles: make ticket small and hide chrome/layout when printing */
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide app chrome and non-ticket content */
+  .top-bar,
+  .sidebar,
+  .section-header,
+  .order-main,
+  .actions,
+  .success,
+  .error-banner {
+    display: none !important;
+  }
+
+  /* Only show the ticket preview */
+  .order-summary {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .ticket-preview {
+    display: block !important;
+    width: 58mm; /* typical small receipt width */
+    max-width: 58mm;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    font-size: 10px;
+  }
+
+  .ticket-preview h4 {
+    text-align: center;
+  }
+
+  .ticket-meta,
+  .ticket-items,
+  .ticket-footer {
+    font-size: 10px;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  @page {
+    size: 58mm auto;
+    margin: 4mm;
+  }
+}
+
