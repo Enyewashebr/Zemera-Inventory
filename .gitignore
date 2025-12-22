@@ -1,0 +1,16 @@
+.DS_Store
+node_modules/
+dist/
+target/
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+*.log
+frontend/.angular/
+frontend/.cache/
+frontend/.turbo/
+
+
