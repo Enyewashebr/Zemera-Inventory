@@ -88,6 +88,46 @@
         }
       </section>
 
+      <section class="dashboard">
+        <div class="section-header">
+          <h2>Dashboard (Today)</h2>
+          <p>Auto-refreshes when new orders or purchases arrive.</p>
+        </div>
+        <div class="metric-grid">
+          @for (metric of dashboardMetrics; track metric.id) {
+            <button class="metric-card" (click)="onMetricClick(metric.path)">
+              <p class="metric-label">{{ metric.label }}</p>
+              <div class="metric-value-row">
+                <span class="metric-value">{{ metric.value | number }}</span>
+                <span class="metric-unit">{{ metric.unit }}</span>
+              </div>
+              <span class="metric-link">View details →</span>
+            </button>
+          }
+        </div>
+
+        <div class="low-stock">
+          <div class="section-header">
+            <h3>Low-Stock Items Alert</h3>
+            <p>Prioritize replenishment before end-of-day.</p>
+          </div>
+          <div class="alert-grid">
+            @for (item of lowStockAlerts; track item.sku) {
+              <div class="alert-card">
+                <div>
+                  <p class="alert-name">{{ item.name }}</p>
+                  <p class="alert-sku">SKU: {{ item.sku }}</p>
+                </div>
+                <div class="alert-level">
+                  <span class="level-dot"></span>
+                  <span>{{ item.level }} {{ item.unit }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
       <section class="features">
         <div class="section-header">
           <h2>Accessible features</h2>
