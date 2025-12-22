@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.zemera</groupId>
+    <groupId>com.zemera.inventory</groupId>
     <artifactId>inventory-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -55,7 +55,7 @@
         </dependency>
     </dependencies>
 
-    <build>
+    <!-- <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -83,6 +83,28 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>
+
+
+    </build> -->
+    <build>
+  <plugins>
+    <plugin>
+      <groupId>io.reactiverse</groupId>
+      <artifactId>vertx-maven-plugin</artifactId>
+      <version>1.0.28</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>run</goal>
+          </goals>
+        </execution>
+      </executions>
+      <configuration>
+        <verticle>com.zemera.inventory.MainVerticle</verticle>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+
 </project>
 

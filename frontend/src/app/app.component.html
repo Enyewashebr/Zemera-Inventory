@@ -1,0 +1,111 @@
+<div class="app-shell">
+  <header class="top-bar">
+    <div class="brand">
+      <div class="logo-dot"></div>
+      <div>
+        <p class="system-name">{{ title }}</p>
+        <span class="role-pill">Manager view</span>
+      </div>
+    </div>
+    <div class="datetime">
+      <div class="date">{{ formattedDate }}</div>
+      <div class="time">{{ formattedTime }}</div>
+    </div>
+    <div class="user">
+      <div class="avatar">M</div>
+      <div>
+        <p class="user-name">Manager</p>
+        <span class="user-role">Full access</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="nav-header">Main Navigation</div>
+      <div class="nav-list">
+        @for (item of navItems; track item) {
+          <button class="nav-item" [class.active]="item === 'Dashboard'">
+            <span class="bullet"></span>
+            <span>{{ item }}</span>
+          </button>
+        }
+      </div>
+      <div class="sidebar-card">
+        <p class="card-title">Today</p>
+        <p class="card-subtitle">Keep operations in sync.</p>
+        <ul>
+          <li>Products ready for edits</li>
+          <li>Purchases awaiting receipts</li>
+          <li>Orders & ticket printing enabled</li>
+          <li>Inventory view shared with team</li>
+          <li>Reports & downloads available</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Manager workspace</p>
+          <h1>Control inventory and sales from one console</h1>
+          <p class="lead">
+            Access product management, purchases, orders and ticket printing, inventory visibility, and reports without leaving this screen.
+          </p>
+          <div class="hero-actions">
+            <button class="primary">View dashboard</button>
+            <button class="ghost">Download reports</button>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <p class="panel-title">Active features</p>
+          <div class="panel-row">
+            <span>Orders & ticket printing</span>
+            <span class="pill success">Enabled</span>
+          </div>
+          <div class="panel-row">
+            <span>Inventory view</span>
+            <span class="pill success">Live</span>
+          </div>
+          <div class="panel-row">
+            <span>Product management</span>
+            <span class="pill">Editing</span>
+          </div>
+          <div class="panel-row">
+            <span>Reports & downloads</span>
+            <span class="pill">Ready</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        @for (stat of stats; track stat.label) {
+          <div class="stat-card">
+            <p class="stat-label">{{ stat.label }}</p>
+            <p class="stat-value">{{ stat.value }}</p>
+            <p class="stat-hint">{{ stat.hint }}</p>
+          </div>
+        }
+      </section>
+
+      <section class="features">
+        <div class="section-header">
+          <h2>Accessible features</h2>
+          <p>All tools available to the Manager profile.</p>
+        </div>
+        <div class="feature-grid">
+          @for (feature of featureTiles; track feature.title) {
+            <div class="feature-card">
+              <div class="feature-icon"></div>
+              <div>
+                <p class="feature-title">{{ feature.title }}</p>
+                <p class="feature-desc">{{ feature.description }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+

@@ -5,14 +5,24 @@
 - Frontend: Placeholder static page (will be replaced with Angular app)
 - Infrastructure: Docker Compose with Postgres, backend, frontend
 
-## Run locally (Docker)
-```
+## Run locally (Docker, once Docker is installed)
+```bash
 docker compose up --build
 ```
 Services:
 - Backend: http://localhost:8080
-- Frontend placeholder: http://localhost:4200
+- Angular frontend: http://localhost:4200
 - Postgres: localhost:5432 (user/password/db: zemera/zemera/zemera_inventory)
+
+## Run Angular frontend in dev mode (without Docker)
+1. Install Node.js (LTS) from the official site.
+2. In a terminal:
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+3. Open `http://localhost:4200` in your browser.
 
 ## Next steps
 1) Add Angular app (replace `frontend` static placeholder)
