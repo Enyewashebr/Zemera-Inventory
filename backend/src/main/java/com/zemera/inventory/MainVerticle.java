@@ -1,6 +1,6 @@
 package com.zemera.inventory;
 
-import com.zemera.inventory.db.PgClientFactory;
+import com.zemera.inventory.DB.PgClientFactory;
 import com.zemera.inventory.handler.OrderHandler;
 import com.zemera.inventory.repository.OrderRepository;
 import com.zemera.inventory.repository.ProductRepository;
@@ -118,7 +118,7 @@ public class MainVerticle extends AbstractVerticle {
             .setType("file")
             .setFormat("json")
             .setOptional(true)
-            .setConfig(new JsonObject().put("path", "application.json"));
+            .setConfig(new JsonObject().put("path", "src/main/resources/application.json"));
 
         ConfigRetrieverOptions options = new ConfigRetrieverOptions()
             .addStore(envStore)

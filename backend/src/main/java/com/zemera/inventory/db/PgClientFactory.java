@@ -1,4 +1,4 @@
-package com.zemera.inventory.db;
+package com.zemera.inventory.DB;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -14,9 +14,9 @@ public final class PgClientFactory {
     public static PgPool createPool(Vertx vertx, JsonObject dbConfig) {
         String host = dbConfig.getString("host", "localhost");
         int port = dbConfig.getInteger("port", 5432);
-        String database = dbConfig.getString("database", "postgres");
+        String database = dbConfig.getString("database", "postgre00s");
         String user = dbConfig.getString("user", "postgres");
-        String password = dbConfig.getString("password", "postgres");
+        String password = dbConfig.getString("password", "postgres000");
 
         PgConnectOptions connectOptions = new PgConnectOptions()
             .setHost(host)
