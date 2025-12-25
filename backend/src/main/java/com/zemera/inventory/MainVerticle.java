@@ -1,10 +1,10 @@
 package com.zemera.inventory;
 
+import com.zemera.inventory.db.PgClientFactory;
 import com.zemera.inventory.handler.OrderHandler;
-import com.zemera.inventory.service.OrderService;
 import com.zemera.inventory.repository.OrderRepository;
 import com.zemera.inventory.repository.ProductRepository;
-import com.zemera.inventory.db.PgClientFactory;
+import com.zemera.inventory.service.OrderService;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -15,6 +15,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.pgclient.PgPool;
 
 public class MainVerticle extends AbstractVerticle {
@@ -22,116 +23,107 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
-        loadConfig().future().onComplete(ar -> {
-            if (ar.failed()) {
-                LOGGER.error("Failed to load configuration", ar.cause());
-                startPromise.fail(ar.cause());
-                return;
-            }
+        loadConfig()
+            .compose(config -> {
+                // Create PostgreSQL connection pool
+                JsonObject dbConfig = config.getJsonObject("db", new JsonObject());
+                PgPool pgPool = PgClientFactory.createPool(vertx, dbConfig);
 
-            JsonObject config = ar.result();
+                // Create repositories
+                ProductRepository productRepository = new ProductRepository(pgPool);
+                OrderRepository orderRepository = new OrderRepository(pgPool);
 
-            // HTTP port: prefer env HTTP_PORT, then config.http.port, then 8080
-            int httpPort = config.getInteger("HTTP_PORT",
-                config.getJsonObject("http", new JsonObject()).getInteger("port", 8080));
+                // Create services
+                OrderService orderService = new OrderService(productRepository, orderRepository);
 
-            // DB config: prefer nested "db" object, otherwise fall back to flat env vars
-            JsonObject dbConfig = config.getJsonObject("db", new JsonObject());
-            if (dbConfig.isEmpty()) {
-                dbConfig
-                    .put("host", config.getString("DB_HOST", "localhost"))
-                    .put("port", config.getInteger("DB_PORT", 5432))
-                    .put("database", config.getString("DB_NAME", "postgres"))
-                    .put("user", config.getString("DB_USER", "postgres"))
-                    .put("password", config.getString("DB_PASSWORD", "postgres"));
-            }
+                // Create handlers
+                OrderHandler orderHandler = new OrderHandler(orderService);
 
-            PgPool client = PgClientFactory.createPool(vertx, dbConfig);
+                // Create HTTP server and router
+                Router router = Router.router(vertx);
 
-            ProductRepository productRepository = new ProductRepository(client);
-            OrderRepository orderRepository = new OrderRepository(client);
-            OrderService orderService = new OrderService(productRepository, orderRepository);
-            OrderHandler orderHandler = new OrderHandler(orderService);
+                // Enable CORS for Angular frontend
+                router.route().handler(CorsHandler.create()
+                    .addOrigin("http://localhost:4200")
+                    .allowedMethods(java.util.Set.of(
+                        io.vertx.core.http.HttpMethod.GET,
+                        io.vertx.core.http.HttpMethod.POST,
+                        io.vertx.core.http.HttpMethod.PUT,
+                        io.vertx.core.http.HttpMethod.DELETE,
+                        io.vertx.core.http.HttpMethod.OPTIONS
+                    ))
+                    .allowedHeaders(java.util.Set.of("Content-Type", "Authorization"))
+                    .allowCredentials(true));
 
-            Router router = Router.router(vertx);
-            router.route().handler(BodyHandler.create());
+                // Enable JSON body parsing
+                router.route().handler(BodyHandler.create());
 
-            // Simple CORS for Angular localhost
-            router.route().handler(ctx -> {
-                ctx.response()
-                    .putHeader("Access-Control-Allow-Origin", "http://localhost:4200")
-                    .putHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-                    .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-                if ("OPTIONS".equals(ctx.request().method().name())) {
-                    ctx.response().setStatusCode(204).end();
-                } else {
-                    ctx.next();
-                }
-            });
+                // Health check endpoints
+                router.get("/api/health").handler(ctx -> {
+                    ctx.response()
+                        .putHeader("Content-Type", "application/json")
+                        .end(new JsonObject().put("status", "ok").encode());
+                });
 
-            // Simple health
-            router.get("/api/health").handler(ctx -> ctx.json(new JsonObject().put("status", "ok")));
-
-            // DB health: run a lightweight SELECT 1 to verify connection
-            router.get("/api/db-health").handler(ctx ->
-                client
-                    .query("SELECT 1")
-                    .execute(dbAr -> {
-                        if (dbAr.succeeded()) {
-                            ctx.json(new JsonObject()
-                                .put("status", "ok")
-                                .put("db", "connected"));
-                        } else {
-                            LOGGER.error("DB health check failed", dbAr.cause());
+                router.get("/api/db-health").handler(ctx -> {
+                    pgPool.query("SELECT 1")
+                        .execute()
+                        .onSuccess(rows -> {
+                            ctx.response()
+                                .putHeader("Content-Type", "application/json")
+                                .end(new JsonObject()
+                                    .put("status", "ok")
+                                    .put("db", "connected")
+                                    .encode());
+                        })
+                        .onFailure(err -> {
+                            LOGGER.error("DB health check failed", err);
                             ctx.response()
                                 .setStatusCode(500)
                                 .putHeader("Content-Type", "application/json")
                                 .end(new JsonObject()
                                     .put("status", "error")
                                     .put("db", "unreachable")
-                                    .put("message", "Database connection failed")
+                                    .put("message", "Database connection failed: " + err.getMessage())
                                     .encode());
-                        }
-                    })
-            );
+                        });
+                });
 
-            // Orders
-            router.post("/api/orders").handler(orderHandler::createOrder);
+                // Order endpoints
+                router.post("/api/orders").handler(orderHandler::createOrder);
 
-            vertx.createHttpServer()
-                .requestHandler(router)
-                .listen(httpPort)
-                .onSuccess(server -> {
-                    LOGGER.info("HTTP server started on port " + server.actualPort());
-                    startPromise.complete();
-                })
-                .onFailure(startPromise::fail);
-        });
+                // Start HTTP server
+                int port = config.getJsonObject("http", new JsonObject()).getInteger("port", 8080);
+                return vertx.createHttpServer()
+                    .requestHandler(router)
+                    .listen(port)
+                    .mapEmpty();
+            })
+            .onSuccess(v -> {
+                LOGGER.info("HTTP server started on port " + config().getJsonObject("http", new JsonObject()).getInteger("port", 8080));
+                startPromise.complete();
+            })
+            .onFailure(err -> {
+                LOGGER.error("Failed to start server", err);
+                startPromise.fail(err);
+            });
     }
 
-    private Promise<JsonObject> loadConfig() {
+    private io.vertx.core.Future<JsonObject> loadConfig() {
         ConfigStoreOptions envStore = new ConfigStoreOptions()
             .setType("env")
             .setConfig(new JsonObject().put("prefix", ""));
 
         ConfigStoreOptions fileStore = new ConfigStoreOptions()
             .setType("file")
-            .setFormat("hocon")
+            .setFormat("json")
             .setOptional(true)
-            .setConfig(new JsonObject().put("path", "application.conf"));
+            .setConfig(new JsonObject().put("path", "application.json"));
 
         ConfigRetrieverOptions options = new ConfigRetrieverOptions()
             .addStore(envStore)
             .addStore(fileStore);
 
-        Promise<JsonObject> promise = Promise.promise();
-        ConfigRetriever.create(vertx, options).getConfig(ar -> {
-            if (ar.failed()) {
-                promise.fail(ar.cause());
-            } else {
-                promise.complete(ar.result());
+        return ConfigRetriever.create(vertx, options).getConfig();
             }
-        });
-        return promise;
-    }
 }

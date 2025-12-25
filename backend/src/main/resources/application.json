@@ -4,6 +4,7 @@
   },
   "db": {
     "host": "localhost",
-    "port": 5432
+    "port": 5432,
+    "name": "zemera_inventory"
   }
 }

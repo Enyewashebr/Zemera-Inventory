@@ -2,8 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InventoryService } from '../services/inventory.service';
-import { SalesService, SaleRow } from '../services/sales.service';
-import { OrderApiService, CreateOrderItemPayload } from '../services/order-api.service';
+import { SalesService } from '../services/sales.service';
 
 interface OrderItem {
   id: number;
@@ -67,8 +66,7 @@ export class OrdersComponent {
 
   constructor(
     private inventoryService: InventoryService,
-    private salesService: SalesService,
-    private orderApi: OrderApiService
+    private salesService: SalesService
   ) {}
 
   get subtotal(): number {
@@ -158,59 +156,41 @@ export class OrdersComponent {
       return;
     }
 
-    const payloadItems: CreateOrderItemPayload[] = this.items.map((item) => ({
-      productName: item.product,
-      quantity: item.quantity
-    }));
+    const now = new Date();
+    const orderId = Date.now();
 
-    this.orderApi
-      .createOrder({
-        waiterName: this.header.waiterName.trim(),
-        items: payloadItems
-      })
-      .subscribe({
-        next: (ticket) => {
-          const orderId = ticket.orderId;
-          const createdAt = new Date(ticket.createdAt);
+    // Deduct stock using shared InventoryService and capture sales rows.
+    const salesRows = this.items.map((item) => {
+      this.inventoryService.decreaseStock(item.product, item.quantity);
 
-          // Update local inventory view to reflect backend stock decrease.
-          ticket.items.forEach((it) => {
-            this.inventoryService.decreaseStock(it.productName, it.quantity);
-          });
+      return {
+        orderId,
+        item: item.product,
+        qty: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        totalPrice: this.itemTotal(item),
+        waiter: this.header.waiterName.trim(),
+        timestamp: now
+      };
+    });
 
-          const salesRows: Omit<SaleRow, 'id'>[] = ticket.items.map((it) => ({
-            orderId,
-            item: it.productName,
-            qty: it.quantity,
-            unit: it.unit,
-            unitPrice: it.unitPrice,
-            totalPrice: it.lineTotal,
-            waiter: ticket.waiterName,
-            timestamp: createdAt
-          }));
+    this.salesService.addSales(salesRows);
 
-          this.salesService.addSales(salesRows);
+    const finalized: FinalizedOrder = {
+      id: orderId,
+      waiter: this.header.waiterName.trim(),
+      createdAt: now,
+      items: this.items.map((i) => ({ ...i })),
+      total: this.totalAmount
+    };
 
-          const finalized: FinalizedOrder = {
-            id: orderId,
-            waiter: ticket.waiterName,
-            createdAt,
-            items: this.items.map((i) => ({ ...i })),
-            total: ticket.totalAmount
-          };
+    this.lastOrder = finalized;
+    this.lastOrderApplied = true;
+    this.successMessage = 'Order created and stock updated. Review and print the ticket.';
+    this.showPrintPrompt = true;
 
-          this.lastOrder = finalized;
-          this.lastOrderApplied = true;
-          this.successMessage = 'Order created, stock updated, and sales recorded from backend.';
-          this.showPrintPrompt = true;
-
-          this.resetItems();
-        },
-        error: (err) => {
-          const message = err?.error?.message || 'Failed to create order.';
-          this.orderError = message;
-        }
-      });
+    this.resetItems();
   }
 
   printTicket(): void {
