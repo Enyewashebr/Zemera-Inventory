@@ -275,9 +275,84 @@
   }
 }
 
+@media (max-width: 768px) {
+  .hero {
+    padding: 1.25rem;
+  }
+
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .lead {
+    font-size: 0.95rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .alert-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
+  .hero {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+  }
+
   .hero-actions {
     flex-direction: column;
+    width: 100%;
+  }
+
+  .primary,
+  .ghost {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .section-header p {
+    font-size: 0.9rem;
   }
 }
 

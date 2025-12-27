@@ -215,37 +215,151 @@
   }
 }
 
-@media (max-width: 860px) {
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.menu-toggle:hover {
+  background: #f1f5f9;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #0f172a;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;
   }
 
   .sidebar {
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    flex-direction: row;
-    flex-wrap: wrap;
+    position: fixed;
+    left: 0;
+    top: 76px;
+    height: calc(100vh - 76px);
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: none;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .content {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-bar {
+    grid-template-columns: auto 1fr auto;
     gap: 1rem;
   }
 
-  .nav-list {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .system-name {
+    font-size: 0.95rem;
+  }
+
+  .role-pill {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.5rem;
+  }
+
+  .datetime {
+    font-size: 0.85rem;
+  }
+
+  .user {
+    gap: 0.5rem;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .user-name {
+    font-size: 0.9rem;
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+  }
+
+  .sidebar {
+    width: 260px;
+  }
+
+  .content {
+    padding: 1rem;
   }
 }
 
 @media (max-width: 640px) {
   .top-bar {
-    grid-template-columns: 1fr;
-    text-align: left;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
   }
 
   .datetime {
-    text-align: left;
+    display: none;
+  }
+
+  .user {
+    display: none;
   }
 
   .content {
-    padding: 1.1rem;
+    padding: 0.75rem;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
   }
 }
 
