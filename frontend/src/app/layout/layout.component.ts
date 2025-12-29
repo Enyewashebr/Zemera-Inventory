@@ -1,66 +1,50 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-  title = 'Zemera Inventory';
-  currentDateTime = new Date();
-  private timer?: ReturnType<typeof setInterval>;
 
-  navItems = [
-    { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Products', path: '/products' },
-    { label: 'Purchases', path: '/purchases' },
-    { label: 'Orders', path: '/orders' },
-    { label: 'Inventory', path: '/inventory' },
-    { label: 'Reports', path: '/reports' },
-    { label: 'Settings', path: '/settings' }
+  title = 'Cafeteria Management System';
+  formattedDate = '';
+  formattedTime = '';
+  private timer!: number;
+
+  constructor(public auth: AuthService) {}
+
+  private baseNavItems = [
+    { path: '/dashboard', label: 'Dashboard' },
+    { path: '/products', label: 'Products' },
+    { path: '/purchases', label: 'Purchases' },
+    { path: '/orders', label: 'Orders' },
+    { path: '/inventory', label: 'Inventory' },
+    { path: '/reports', label: 'Reports' }
   ];
 
-  constructor(private router: Router) {}
+  get navItems() {
+    return this.auth.isAdmin()
+      ? [...this.baseNavItems, { path: '/users', label: 'Users' }]
+      : this.baseNavItems;
+  }
 
   ngOnInit(): void {
-    this.timer = setInterval(() => {
-      this.currentDateTime = new Date();
-    }, 1000);
-
-    if (this.router.url === '/' || this.router.url === '') {
-      this.router.navigate(['/dashboard']);
-    }
+    this.updateDateTime();
+    this.timer = window.setInterval(() => this.updateDateTime(), 1000);
   }
 
   ngOnDestroy(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
+    clearInterval(this.timer);
   }
 
-  get formattedDate(): string {
-    return this.currentDateTime.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
-  get formattedTime(): string {
-    return this.currentDateTime.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+  private updateDateTime(): void {
+    const now = new Date();
+    this.formattedDate = now.toLocaleDateString();
+    this.formattedTime = now.toLocaleTimeString();
   }
 }
-
-
-
-
-

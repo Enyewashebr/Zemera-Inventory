@@ -1,21 +1,26 @@
 <div class="app-shell">
+
   <header class="top-bar">
     <div class="brand">
       <div class="logo-dot"></div>
       <div>
         <p class="system-name">{{ title }}</p>
-        <span class="role-pill">Manager view</span>
+        <span class="role-pill">
+          {{ auth.isAdmin() ? 'Super Manager' : 'Branch Manager' }}
+        </span>
       </div>
     </div>
+
     <div class="datetime">
       <div class="date">{{ formattedDate }}</div>
       <div class="time">{{ formattedTime }}</div>
     </div>
+
     <div class="user">
-      <div class="avatar">M</div>
+      <div class="avatar">{{ auth.getUserInitials() }}</div>
       <div>
-        <p class="user-name">Manager</p>
-        <span class="user-role">Full access</span>
+        <p class="user-name">{{ auth.getUserName() }}</p>
+        <span class="user-role">{{ auth.getUserRole() }}</span>
       </div>
     </div>
   </header>
@@ -23,6 +28,7 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="nav-header">Main Navigation</div>
+
       <div class="nav-list">
         @for (item of navItems; track item.path) {
           <a
@@ -38,26 +44,11 @@
           </a>
         }
       </div>
-      <div class="sidebar-card">
-        <p class="card-title">Today</p>
-        <p class="card-subtitle">Keep operations in sync.</p>
-        <ul>
-          <li>Products ready for edits</li>
-          <li>Purchases awaiting receipts</li>
-          <li>Orders & ticket printing enabled</li>
-          <li>Inventory view shared with team</li>
-          <li>Reports & downloads available</li>
-        </ul>
-      </div>
     </aside>
 
     <main class="content">
       <router-outlet />
     </main>
   </div>
+
 </div>
-
-
-
-
-

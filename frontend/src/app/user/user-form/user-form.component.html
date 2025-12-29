@@ -1,0 +1,32 @@
+<section class="card">
+  <h2>Create User</h2>
+
+  <form (ngSubmit)="save()">
+    <label>
+      Username
+      <input [(ngModel)]="user.username" name="username" required />
+    </label>
+
+    <label>
+      Password
+      <input type="password" [(ngModel)]="user.password" name="password" required />
+    </label>
+
+    <label>
+      Role
+      <select [(ngModel)]="user.role" name="role">
+        <option value="BRANCH_MANAGER">Branch Manager</option>
+      </select>
+    </label>
+
+    <label>
+      Branch
+      <select [(ngModel)]="user.branchId" name="branch">
+        <option [value]="1">Branch 1</option>
+        <option [value]="2">Branch 2</option>
+      </select>
+    </label>
+
+    <button type="submit">Save</button>
+  </form>
+</section>
