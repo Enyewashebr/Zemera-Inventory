@@ -1,11 +1,6 @@
 <div class="app-shell">
   <header class="top-bar">
     <div class="brand">
-      <button class="menu-toggle" (click)="toggleSidebar()" aria-label="Toggle menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
       <div class="logo-dot"></div>
       <div>
         <p class="system-name">{{ title }}</p>
@@ -26,10 +21,7 @@
   </header>
 
   <div class="layout">
-    @if (sidebarOpen) {
-      <div class="sidebar-overlay" (click)="closeSidebar()"></div>
-    }
-    <aside class="sidebar" [class.open]="sidebarOpen">
+    <aside class="sidebar">
       <div class="nav-header">Main Navigation</div>
       <div class="nav-list">
         @for (item of navItems; track item.path) {
@@ -38,7 +30,6 @@
             routerLinkActive="active-link"
             class="nav-item-link"
             #rla="routerLinkActive"
-            (click)="closeSidebar()"
           >
             <span class="nav-item" [class.active]="rla.isActive">
               <span class="bullet"></span>

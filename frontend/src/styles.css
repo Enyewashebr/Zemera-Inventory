@@ -5,6 +5,7 @@
   body {
     margin: 0;
     padding: 0;
+    
   }
 
   /* Hide app chrome and non-ticket content */
@@ -63,6 +64,9 @@
     margin: 4mm;
   }
 }
+
+
+
 
 
 

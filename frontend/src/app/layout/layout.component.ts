@@ -13,7 +13,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
   title = 'Zemera Inventory';
   currentDateTime = new Date();
   private timer?: ReturnType<typeof setInterval>;
-  sidebarOpen = false;
 
   navItems = [
     { label: 'Dashboard', path: '/dashboard' },
@@ -26,14 +25,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ];
 
   constructor(private router: Router) {}
-
-  toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
-  }
-
-  closeSidebar(): void {
-    this.sidebarOpen = false;
-  }
 
   ngOnInit(): void {
     this.timer = setInterval(() => {

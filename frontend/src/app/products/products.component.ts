@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { map } from 'rxjs/operators';
@@ -33,10 +33,12 @@ interface Product {
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css']
 })
-export class ProductsComponent {
+export class ProductsComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   backendUrl = 'http://localhost:8080/api/products';
+  searchTerm: string = '';
+  allProducts: Product[] = [];
 
   categories: Category[] = [
     { id: 'cleaning', name: 'Cleaning Materials', sellableDefault: false, subcategories: ['Detergent', 'Bleach', 'Soap', 'Tissue', 'Floor cleaner'], allowedUnits: ['L', 'kg', 'pcs'] },
@@ -49,6 +51,49 @@ export class ProductsComponent {
   ];
 
   products: Product[] = [];
+
+  ngOnInit(): void {
+    this.loadProducts();
+  }
+
+  loadProducts(): void {
+    this.http.get<Product[]>(this.backendUrl)
+      .pipe(
+        map(products => products.map(p => ({
+          ...p,
+          createdAt: new Date(p.createdAt),
+          categoryName: this.categories.find(c => c.id === p.categoryId)?.name ?? ''
+        })))
+      )
+      .subscribe({
+        next: (products) => {
+          this.allProducts = products;
+          this.filterProducts();
+        },
+        error: (err) => {
+          console.error('Failed to load products', err);
+        }
+      });
+  }
+
+  filterProducts(): void {
+    if (!this.searchTerm.trim()) {
+      this.products = [...this.allProducts];
+      return;
+    }
+
+    const search = this.searchTerm.toLowerCase().trim();
+    this.products = this.allProducts.filter(product =>
+      product.name.toLowerCase().includes(search) ||
+      product.categoryName.toLowerCase().includes(search) ||
+      (product.subcategory && product.subcategory.toLowerCase().includes(search)) ||
+      product.unit.toLowerCase().includes(search)
+    );
+  }
+
+  onSearchChange(): void {
+    this.filterProducts();
+  }
 
   productForm = {
     name: '',
@@ -163,9 +208,10 @@ export class ProductsComponent {
     )
     .subscribe({
       next: (updatedProduct) => {
-        this.products = this.products.map(p =>
+        this.allProducts = this.allProducts.map(p =>
           p.id === updatedProduct.id ? updatedProduct : p
         );
+        this.filterProducts(); // Refresh filtered list
         this.resetForm();
       },
       error: err => {
@@ -188,7 +234,13 @@ export class ProductsComponent {
       )
       .subscribe({
         next: (newProduct) => {
-          this.products = [newProduct, ...this.products];
+          const productWithCategory = {
+            ...newProduct,
+            createdAt: new Date(newProduct.createdAt),
+            categoryName: this.categories.find(c => c.id === newProduct.categoryId)?.name ?? ''
+          };
+          this.allProducts = [productWithCategory, ...this.allProducts];
+          this.filterProducts(); // Refresh filtered list
           this.resetForm();
         },
         error: (err) => {

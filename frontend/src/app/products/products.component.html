@@ -10,6 +10,21 @@
         <h3>Product list</h3>
         <span class="table-hint">Click edit to update details (unit locked during edit).</span>
       </div>
+      <div class="search-bar">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          placeholder="Search products by name, category, subcategory, or unit..."
+          class="search-input"
+        />
+        @if (searchTerm) {
+          <button class="clear-search" (click)="searchTerm = ''; filterProducts()" aria-label="Clear search">
+            ✕
+          </button>
+        }
+        <span class="search-results">{{ products.length }} of {{ allProducts.length }} products</span>
+      </div>
       <div class="table-wrapper">
         <table>
           <thead>
