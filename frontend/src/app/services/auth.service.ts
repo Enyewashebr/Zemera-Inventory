@@ -8,6 +8,8 @@ import { AuthModel } from '../model/auth.model';
 })
 export class AuthService {
 
+  private API_URL = 'http://localhost:8080/api/auth';
+
   private readonly STORAGE_KEY = 'auth_session';
 
   private authSubject = new BehaviorSubject<AuthModel | null>(
@@ -22,15 +24,16 @@ export class AuthService {
   // AUTH ACTIONS
   // ======================
 
-  login(username: string, password: string): Observable<AuthModel> {
-    return this.http.post<AuthModel>('/api/auth/login', { username, password })
-      .pipe(
-        tap(auth => {
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(auth));
-          this.authSubject.next(auth);
-        })
-      );
-  }
+ login(username: string, password: string): Observable<AuthModel> {
+  return this.http.post<AuthModel>(`${this.API_URL}/login`, { username, password })
+    .pipe(
+      tap(auth => {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(auth));
+        this.authSubject.next(auth);
+      })
+    );
+}
+
 
   logout(): void {
     localStorage.removeItem(this.STORAGE_KEY);

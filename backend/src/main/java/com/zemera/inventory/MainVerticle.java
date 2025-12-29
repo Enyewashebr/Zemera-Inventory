@@ -1,8 +1,11 @@
 package com.zemera.inventory;
 
 import com.zemera.inventory.config.DatabaseConfig;
+import com.zemera.inventory.handler.AuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
 import com.zemera.inventory.service.ProductService;
+import com.zemera.inventory.service.AuthService;
+import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.repository.ProductRepository;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -64,10 +67,20 @@ public class MainVerticle extends AbstractVerticle {
         ProductService productService = new ProductService(productRepository);
         ProductHandler productHandler = new ProductHandler(productService);
 
+        AuthRepository authRepo = new AuthRepository(client);
+        AuthService authService = new AuthService(authRepo);
+        AuthHandler authHandler = new AuthHandler(authService);
+
+
+// response.putHeader("content-type", "application/json").end(jsonObject.encode());
+
+
         // 9️⃣ Product API routes
         router.get("/api/products").handler(productHandler::getAllProducts); // GET all products
         router.post("/api/products").handler(productHandler::createProduct); // CREATE product
         router.put("/api/products/:id").handler(productHandler::updateProduct); // UPDATE product
+        router.post("/api/auth/login").handler(authHandler::login); // LOGIN endpoint
+        router.get("/api/auth/login").handler(authHandler::login); // LOGIN endpoint
 
 
         // 1️⃣0️⃣ Start HTTP server

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { LoginComponent } from './auth/login/login.component';
+import { LoginComponent } from './auth/login.component';
 import { AuthGuard } from './gaurd/auth.guard';
 
 import { LayoutComponent } from './layout/layout.component';
@@ -54,4 +54,5 @@ export const routes: Routes = [
     redirectTo: 'dashboard'
   }
 ];
+
 

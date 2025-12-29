@@ -54,6 +54,25 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- BCrypt for password hashing -->
+    <dependency>
+        <groupId>org.mindrot</groupId>
+        <artifactId>jbcrypt</artifactId>
+        <version>0.4</version>
+    </dependency>
+    <dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.15.2</version> <!-- or latest stable -->
+</dependency>
+
+    <!-- JWT library -->
+    <dependency>
+        <groupId>com.auth0</groupId>
+        <artifactId>java-jwt</artifactId>
+        <version>4.4.0</version>
+    </dependency>
+
         <dependency>
   <groupId>com.ongres.scram</groupId>
   <artifactId>client</artifactId>
@@ -77,6 +96,12 @@
         <verticle>com.zemera.inventory.MainVerticle</verticle>
       </configuration>
     </plugin>
+
+    <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.0</version>
+        </plugin>
   </plugins>
 </build>
 
