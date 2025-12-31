@@ -1,0 +1,15 @@
+<h2>Branch Manager Dashboard</h2>
+
+<div class="stats">
+  <div class="card" *ngFor="let s of stats">
+    <p>{{ s.label }}</p>
+    <h3>{{ s.value }}</h3>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="card" *ngFor="let m of metrics">
+    <p>{{ m.label }}</p>
+    <h3>{{ m.value }} {{ m.unit }}</h3>
+  </div>
+</div>

@@ -8,6 +8,7 @@
         <span class="role-pill">
           {{ auth.isAdmin() ? 'Super Manager' : 'Branch Manager' }}
         </span>
+       
       </div>
     </div>
 
@@ -21,8 +22,14 @@
       <div>
         <p class="user-name">{{ auth.getUserName() }}</p>
         <span class="user-role">{{ auth.getUserRole() }}</span>
+        <li>
+      <button (click)="logout()">Logout</button>
+    </li>
       </div>
+      
     </div>
+      
+    
   </header>
 
   <div class="layout">

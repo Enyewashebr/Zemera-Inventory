@@ -35,6 +35,7 @@ export class AuthService {
 }
 
 
+
   logout(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     this.authSubject.next(null);
@@ -63,6 +64,12 @@ export class AuthService {
   getUserRole(): string {
     return this.authSubject.value?.role ?? 'UNKNOWN';
   }
+  getDashboardRoute(): string {
+  const role = this.getUserRole();
+  if (role === 'SUPER_MANAGER') return '/dashboard/super';
+  return '/dashboard/branch'; // default branch manager
+}
+
 
   getUserInitials(): string {
     const name = this.getUserName();

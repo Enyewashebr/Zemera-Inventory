@@ -1,40 +1,40 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  standalone: true,
+  imports: [FormsModule, CommonModule] // <-- important
 })
 export class LoginComponent {
+  username: string = '';
+  password: string = '';
+  loading: boolean = false;
+  error: string = '';
 
-  username = '';
-  password = '';
-  error = '';
-  loading = false;
+  constructor(private auth: AuthService, private router: Router) {}
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-
-  login(): void {
-    this.error = '';
+  login() {
     this.loading = true;
+    this.error = '';
 
-    this.authService.login(this.username, this.password).subscribe({
-      next: () => {
+    this.auth.login(this.username, this.password).subscribe({
+      next: (res) => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        // Navigate based on role
+        if (res.role === 'SUPER_MANAGER') {
+          this.router.navigate(['/dashboard/super']);
+        } else {
+          this.router.navigate(['/dashboard/branch']);
+        }
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.error = 'Invalid username or password';
+        this.error = err.error || 'Login failed';
       }
     });
   }

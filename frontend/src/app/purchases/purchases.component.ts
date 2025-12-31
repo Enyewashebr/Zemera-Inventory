@@ -1,112 +1,161 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+// import { PurchaseService, Purchase } from '../services/purchase.service';
+// import { ProductService, Product } from '../services/product.service';
+import { AuthService } from '../services/auth.service';
+// import { Component } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-interface PurchaseRow {
-  id: number;
-  date: string;
-  product: string;
-  quantity: number;
-  unit: string;
-  unitPrice: number;
-  totalCost: number;
-}
+import { PurchaseService, Purchase } from '../services/purchase.service';
+import { ProductService, Product } from '../services/product.service';
 
 @Component({
   selector: 'app-purchases',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,   // NgIf, NgFor, currency pipe
+    FormsModule,    // ngModel
+    CurrencyPipe
+  ],
   templateUrl: './purchases.component.html',
-  styleUrl: './purchases.component.css'
 })
-export class PurchasesComponent {
-  products = [
-    { name: 'Thermal Paper Rolls', unit: 'pcs' },
-    { name: 'Barcode Labels 4x6', unit: 'pcs' },
-    { name: 'POS Receipt Printer', unit: 'units' }
-  ];
+export class PurchasesComponent implements OnInit {
+
+  products: Product[] = [];
+  purchases: Purchase[] = [];
 
   form = {
-    product: '',
-    quantity: 0,
+    productId: null as number | null,
+    quantity: 1,
     unitPrice: 0,
-    date: new Date().toISOString().substring(0, 10)
+    date: new Date().toISOString().substring(0, 10),
+    branchId: 0
   };
 
-  formErrors: Record<string, string> = {};
+  formErrors: any = {};
+  totalCost = 0;
   successMessage = '';
+  isSaving = false;
 
-  purchases: PurchaseRow[] = [];
-  private nextId = 1;
+  constructor(
+    private productService: ProductService,
+    private purchaseService: PurchaseService,
+    private auth: AuthService
+  ) {}
 
-  get selectedProductUnit(): string {
-    return this.products.find((p) => p.name === this.form.product)?.unit ?? '';
-  }
+  ngOnInit(): void {
+    const branchId = this.auth.getBranchId();
 
-  get totalCost(): number {
-    const q = Number(this.form.quantity);
-    const price = Number(this.form.unitPrice);
-    if (Number.isNaN(q) || Number.isNaN(price)) return 0;
-    return q * price;
-  }
-
-  savePurchase(): void {
-    this.formErrors = {};
-    this.successMessage = '';
-
-    const { product, quantity, unitPrice, date } = this.form;
-    const unit = this.selectedProductUnit;
-
-    if (!product) {
-      this.formErrors['product'] = 'Product is required.';
-    }
-    if (!date) {
-      this.formErrors['date'] = 'Purchase date is required.';
-    }
-    if (Number.isNaN(quantity) || quantity <= 0) {
-      this.formErrors['quantity'] = 'Quantity must be greater than zero.';
-    }
-    if (Number.isNaN(unitPrice) || unitPrice <= 0) {
-      this.formErrors['unitPrice'] = 'Unit price must be greater than zero.';
-    }
-    if (!unit) {
-      this.formErrors['unit'] = 'Unit cannot be determined from product.';
-    }
-
-    if (Object.keys(this.formErrors).length > 0) {
+    if (branchId === null) {
+      console.error('No branch assigned to user');
       return;
     }
 
-    const row: PurchaseRow = {
-      id: this.nextId++,
-      date,
-      product,
-      quantity,
-      unit,
-      unitPrice,
-      totalCost: this.totalCost
-    };
+    this.form.branchId = branchId;
 
-    this.purchases = [row, ...this.purchases];
+    this.loadProducts();
+    this.loadPurchases();
+  }
 
-    // In a real app this is where stock would be increased via a shared store or API.
+  /* ================= LOAD DATA ================= */
 
-    this.successMessage = 'Purchase saved and stock updated.';
-    this.clearForm();
+  loadProducts(): void {
+    this.productService.getAllProducts().subscribe((res: Product[]) => {
+      this.products = res;
+    });
+  }
+
+  loadPurchases(): void {
+    if (!this.form.branchId) return;
+
+    this.purchaseService
+      .getByBranch(this.form.branchId)
+      .subscribe((res: Purchase[]) => {
+        this.purchases = res;
+      });
+  }
+
+  /* ================= FORM LOGIC ================= */
+
+  onProductChange(): void {
+    const product = this.products.find(
+      (p: Product) => p.id === this.form.productId
+    );
+
+    if (product && !product.sellable) {
+      this.form.unitPrice = 0;
+    }
+
+    this.calculateTotal();
+  }
+
+  calculateTotal(): void {
+    this.totalCost =
+      (this.form.quantity || 0) * (this.form.unitPrice || 0);
   }
 
   clearForm(): void {
     this.form = {
-      product: '',
-      quantity: 0,
+      productId: null,
+      quantity: 1,
       unitPrice: 0,
-      date: new Date().toISOString().substring(0, 10)
+      date: new Date().toISOString().substring(0, 10),
+      branchId: this.form.branchId
     };
+
     this.formErrors = {};
+    this.totalCost = 0;
+    this.successMessage = '';
+  }
+
+  /* ================= SAVE PURCHASE ================= */
+
+  savePurchase(): void {
+    this.isSaving = true;
+    this.formErrors = {};
+
+    if (!this.form.productId)
+      this.formErrors.productId = 'Product is required';
+
+    if (!this.form.quantity || this.form.quantity < 1)
+      this.formErrors.quantity = 'Quantity must be at least 1';
+
+    if (this.form.unitPrice < 0)
+      this.formErrors.unitPrice = 'Unit price cannot be negative';
+
+    if (!this.form.date)
+      this.formErrors.date = 'Date is required';
+
+    if (Object.keys(this.formErrors).length) {
+      this.isSaving = false;
+      return;
+    }
+
+    const purchasePayload: Purchase = {
+      productId: this.form.productId!,
+      quantity: this.form.quantity,
+      unitPrice: this.form.unitPrice,
+      totalCost: this.totalCost,
+      date: this.form.date,
+      branchId: this.form.branchId,
+      status: 'Pending',
+      productName:
+        this.products.find(p => p.id === this.form.productId)?.name || ''
+    };
+
+    this.purchaseService.create(purchasePayload).subscribe({
+      next: () => {
+        this.successMessage =
+          'Purchase added successfully and pending approval';
+        this.loadPurchases();
+        this.clearForm();
+        this.isSaving = false;
+      },
+      error: err => {
+        console.error(err);
+        this.isSaving = false;
+      }
+    });
   }
 }
-
-
-
-
-

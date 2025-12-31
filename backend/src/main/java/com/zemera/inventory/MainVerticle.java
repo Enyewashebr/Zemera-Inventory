@@ -5,6 +5,7 @@ import com.zemera.inventory.handler.AuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
 import com.zemera.inventory.service.ProductService;
 import com.zemera.inventory.service.AuthService;
+import com.zemera.inventory.util.JwtUtil;
 import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.repository.ProductRepository;
 import io.vertx.core.AbstractVerticle;
@@ -14,7 +15,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.sqlclient.Pool;
-// import io.vertx.sqlclient.SqlClient;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -26,7 +26,7 @@ public class MainVerticle extends AbstractVerticle {
 
         // 2️⃣ Enable CORS for Angular frontend (localhost:4200)
         router.route().handler(
-            CorsHandler.create("http://localhost:4200") // allow requests only from Angular
+            CorsHandler.create("http://localhost:4200")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.PUT)
@@ -67,23 +67,22 @@ public class MainVerticle extends AbstractVerticle {
         ProductService productService = new ProductService(productRepository);
         ProductHandler productHandler = new ProductHandler(productService);
 
+        // 9️⃣ Initialize repository, JWT util, service, and handler for Auth
         AuthRepository authRepo = new AuthRepository(client);
-        AuthService authService = new AuthService(authRepo);
+        JwtUtil jwtUtil = new JwtUtil();
+        AuthService authService = new AuthService(authRepo, jwtUtil);
         AuthHandler authHandler = new AuthHandler(authService);
 
-
-// response.putHeader("content-type", "application/json").end(jsonObject.encode());
-
-
-        // 9️⃣ Product API routes
+        // 10️⃣ Product API routes
         router.get("/api/products").handler(productHandler::getAllProducts); // GET all products
         router.post("/api/products").handler(productHandler::createProduct); // CREATE product
         router.put("/api/products/:id").handler(productHandler::updateProduct); // UPDATE product
-        router.post("/api/auth/login").handler(authHandler::login); // LOGIN endpoint
-        router.get("/api/auth/login").handler(authHandler::login); // LOGIN endpoint
 
+        // 11️⃣ Auth API routes
+        router.post("/api/auth/login").handler(authHandler::loginUser); // LOGIN endpoint
+        router.post("/api/auth/create").handler(authHandler::registerUser); // optional GET login test
 
-        // 1️⃣0️⃣ Start HTTP server
+        // 12️⃣ Start HTTP server
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(8080, http -> {

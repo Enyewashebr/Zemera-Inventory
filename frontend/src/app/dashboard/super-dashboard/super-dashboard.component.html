@@ -1,0 +1,13 @@
+<h2>Super Manager Dashboard</h2>
+
+<section class="users">
+  <div class="header">
+    <h3>Users Management</h3>
+    <button (click)="addUser()">+ Add User</button>
+  </div>
+
+  <div class="user-card" *ngFor="let u of users">
+    <p><strong>{{ u.name }}</strong></p>
+    <span>{{ u.role }}</span>
+  </div>
+</section>

@@ -1,10 +1,9 @@
 package com.zemera.inventory.handler;
 
-import com.zemera.inventory.model.LoginRequest;
 import com.zemera.inventory.service.AuthService;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthHandler {
 
@@ -14,23 +13,75 @@ public class AuthHandler {
         this.authService = authService;
     }
 
-    public void login(RoutingContext ctx) {
-        LoginRequest req = ctx.getBodyAsJson().mapTo(LoginRequest.class);
+    // --- Existing login ---
+    public void loginUser(RoutingContext ctx) {
+        JsonObject body = ctx.getBodyAsJson();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Invalid JSON body");
+            return;
+        }
 
-        authService.login(req).onComplete(ar -> {
-            if (ar.succeeded()) {
-                JsonObject res = JsonObject.mapFrom(ar.result());
+        String username = body.getString("username");
+        String password = body.getString("password");
+
+        if (username == null || password == null || password.isBlank()) {
+            ctx.response().setStatusCode(400).end("Missing username or password");
+            return;
+        }
+
+        authService.login(username, password)
+            .onSuccess(result -> {
                 ctx.response()
-                    .putHeader("Content-Type", "application/json")
-                    .setStatusCode(200)
-                    .end(res.encode());
-            } else {
+                   .putHeader("Content-Type", "application/json")
+                   .end(result.encode());
+            })
+            .onFailure(err -> {
                 ctx.response()
-                    .putHeader("Content-Type", "application/json")
-                    .setStatusCode(401)
-                    .end(new JsonObject().put("error", ar.cause().getMessage()).encode());
-            }
-            System.out.println("Login request: " + req.username);
-        });
+                   .setStatusCode(401)
+                   .end(err.getMessage());
+            });
+    }
+
+    // --- NEW: Register user ---
+    public void registerUser(RoutingContext ctx) {
+        JsonObject body = ctx.getBodyAsJson();
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Invalid JSON body");
+            return;
+        }
+
+        String username = body.getString("username");
+        String password = body.getString("password");
+        String role = body.getString("role");
+        Integer branchId = body.getInteger("branchId");
+
+        // Validate input
+        if (username == null || username.isBlank() ||
+            password == null || password.isBlank() ||
+            role == null || role.isBlank() ||
+            branchId == null) {
+            ctx.response().setStatusCode(400).end("Missing required fields");
+            return;
+        }
+
+        // Build user JSON object to pass to service
+        JsonObject newUser = new JsonObject()
+                .put("username", username)
+                .put("password", password)
+                .put("role", role)
+                .put("branchId", branchId);
+
+        authService.register(newUser)
+            .onSuccess(savedUser -> {
+                ctx.response()
+                   .setStatusCode(201)
+                   .putHeader("Content-Type", "application/json")
+                   .end(savedUser.encode());
+            })
+            .onFailure(err -> {
+                ctx.response()
+                   .setStatusCode(500)
+                   .end(err.getMessage());
+            });
     }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router'; // <- import Router
 
 @Component({
   selector: 'app-layout',
@@ -16,7 +17,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   formattedTime = '';
   private timer!: number;
 
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private router: Router) {} // <- inject Router
 
   private baseNavItems = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -28,11 +29,24 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ];
 
   get navItems() {
-    return this.auth.isAdmin()
-      ? [...this.baseNavItems, { path: '/users', label: 'Users' }]
-      : this.baseNavItems;
+    // add users menu only for super managers
+    if (this.auth.isAdmin()) {
+      return [...this.baseNavItems, { path: '/users', label: 'Users' }, { path: '/create-user', label: 'Add User' }];
+    }
+    return this.baseNavItems;
   }
 
+  // ==========================
+  // LOGOUT
+  // ==========================
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
+
+  // ==========================
+  // DATETIME
+  // ==========================
   ngOnInit(): void {
     this.updateDateTime();
     this.timer = window.setInterval(() => this.updateDateTime(), 1000);

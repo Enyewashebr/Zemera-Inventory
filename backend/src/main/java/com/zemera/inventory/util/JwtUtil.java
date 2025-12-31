@@ -1,28 +1,22 @@
 package com.zemera.inventory.util;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import io.vertx.core.json.JsonObject;
 import java.util.Date;
-
 
 public class JwtUtil {
 
-  private static final String SECRET = "CHANGE_THIS_SECRET";
+    private static final String SECRET = "my_super_secret_key_123456";
 
-  public static String generateToken(JsonObject user) {
-    return JWT.create()
-      .withSubject(user.getString("username"))
-      .withClaim("role", user.getString("role"))
-      .withClaim("branchId", user.getInteger("branch_id"))
-      .withExpiresAt(new Date(System.currentTimeMillis() + 86400000))
-      .sign(Algorithm.HMAC256(SECRET));
-  }
-
-
-
-  
-
+    public String generateToken(Integer userId, String username, String role) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("userId", userId)
+                .claim("role", role)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
+    }
 }
