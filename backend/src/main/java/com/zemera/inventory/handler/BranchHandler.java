@@ -24,16 +24,16 @@ public class BranchHandler {
         return;
     }
 
-    String name = body.getString("name");
+    String branch_name = body.getString("name");
     String phone = body.getString("phone");
 
-    if (name == null || name.isBlank()) {
+    if (branch_name == null || branch_name.isBlank()) {
         ctx.response().setStatusCode(400).end("Branch name is required");
         return;
     }
 
     Branch newBranch = new Branch();
-    newBranch.setName(name);
+    newBranch.setName(branch_name);
     newBranch.setPhone(phone);
 
     repo.createBranch(newBranch)

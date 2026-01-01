@@ -20,7 +20,7 @@ export class UserFormComponent implements OnInit {
   email: '',
   phone: '',
   role: 'BRANCH_MANAGER',
-  branchId: null as number | null
+  name: '' 
 };
   
   errorMessage = '';

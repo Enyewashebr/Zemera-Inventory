@@ -17,12 +17,10 @@
       Phone Number
       <input [(ngModel)]="user.phone" name="phone" required />
     </label>
-
     <label>
       Username
       <input [(ngModel)]="user.username" name="username" required />
     </label>
-
     <label>
       Password
       <input type="password"
@@ -30,7 +28,6 @@
              name="password"
              required />
     </label>
-
     <label>
       Role
       <select [(ngModel)]="user.role" name="role" required>
@@ -41,9 +38,9 @@
 
     <label>
   Branch
-  <select [(ngModel)]="user.branchId" name="branchId" required>
+  <select [(ngModel)]="user.name" name="name" required>
     <option value="" disabled>Select branch</option>
-    <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
+    <option *ngFor="let b of branches" [ngValue]="b.name">{{ b.name }}</option>
   </select>
 </label>
 

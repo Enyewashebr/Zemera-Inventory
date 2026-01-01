@@ -1,34 +1,62 @@
+<!-- EDIT FORM -->
+<section class="card" *ngIf="editingUserId !== null">
+  <h2>Edit User</h2>
+
+  <form (ngSubmit)="save()">
+    <input [(ngModel)]="user.fullName" name="fullName" placeholder="Full name" required />
+    <input [(ngModel)]="user.username" name="username" placeholder="Username" required />
+    <input [(ngModel)]="user.email" name="email" placeholder="Email" required />
+    <input [(ngModel)]="user.phone" name="phone" placeholder="Phone" required />
+
+    <select [(ngModel)]="user.role" name="role">
+      <option value="BRANCH_MANAGER">Branch Manager</option>
+      <option value="SUPER_MANAGER">Super Manager</option>
+    </select>
+
+    <select [(ngModel)]="user.name" name="name">
+      <option [ngValue]="null">All</option>
+      <option *ngFor="let b of branches" [ngValue]="b.id">
+        {{ b.name }}
+      </option>
+    </select>
+
+    <button type="submit">Save</button>
+    <button type="button" (click)="cancelEdit()">Cancel</button>
+  </form>
+</section>
+
+<!-- USERS TABLE -->
 <section class="card">
-  <h2>System Users</h2>
+  <h2>Users</h2>
 
- <table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Full Name</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th>Role</th>
-      <th>Branch</th>
-      <th>Actions</th> <!-- NEW -->
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let user of users">
-      <td>{{ user.id }}</td>
-      <td>{{ user.fullName }}</td>
-      <td>{{ user.username }}</td>
-      <td>{{ user.email }}</td>
-      <td>{{ user.phone }}</td>
-      <td>{{ user.role }}</td>
-      <td>{{ user.branchId }}</td>
-      <td>
-        <button (click)="editUser(user)">Edit</button>
-        <button (click)="deleteUser(user.id)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Full Name</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Role</th>
+        <th>Branch</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
 
+    <tbody>
+      <tr *ngFor="let u of users; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ u.fullName }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.phone }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ u.name }}</td>
+        <td>
+          <button (click)="editUser(u.id)">Edit</button>
+          <button (click)="deleteUser(u.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </section>

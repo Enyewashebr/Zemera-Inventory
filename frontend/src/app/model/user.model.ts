@@ -13,5 +13,5 @@ export interface User {
   email?: string;   // optional, since some users may not have email
   phone?: string;   // optional
   role: string;
-  branchId: number;
+  name: string;
 }

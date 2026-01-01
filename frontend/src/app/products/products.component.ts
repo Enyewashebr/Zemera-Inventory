@@ -153,7 +153,6 @@ export class ProductsComponent implements OnInit {
     };
     this.formErrors = {};
   }
-
   submitProduct(): void {
     this.formErrors = {};
 

@@ -1,35 +1,40 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { User } from '../../model/user.model';
-import { Router } from '@angular/router';
-
-
-
-
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
 export class UserComponent implements OnInit {
 
-  users: User[] = [];
+  users: any[] = [];
   branches: any[] = [];
-  constructor(private http: HttpClient, private router: Router) { }
 
- 
+  editingUserId: number | null = null;
+
+  user = {
+    fullName: '',
+    username: '',
+    email: '',
+    phone: '',
+    role: 'BRANCH_MANAGER',
+    name: ''
+  };
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.loadBranches();
     this.loadUsers();
+    this.loadBranches();
   }
 
   loadUsers() {
-    this.http.get<User[]>('http://localhost:8080/api/users')
+    this.http.get<any[]>('http://localhost:8080/api/users')
       .subscribe(res => this.users = res);
   }
 
@@ -38,30 +43,48 @@ export class UserComponent implements OnInit {
       .subscribe(res => this.branches = res);
   }
 
-  getBranchName(branchId?: number | null): string {
-    if (!branchId) return 'All';
-    const branch = this.branches.find(b => b.id === branchId);
-    return branch ? branch.name : 'Unknown';
+  editUser(id: number) {
+    const u = this.users.find(x => x.id === id);
+    if (!u) return;
+
+    this.editingUserId = id;
+    this.user = { ...u };
   }
 
+  cancelEdit() {
+    this.editingUserId = null;
+    this.user = {
+      fullName: '',
+      username: '',
+      email: '',
+      phone: '',
+      role: 'BRANCH_MANAGER',
+      name: ''
+    };
+  }
 
+  save() {
+    if (this.editingUserId === null) return;
 
-  editUser(user: any) {
-  // Navigate to the user form with user id
-  this.router.navigate(['/users/edit', user.id]);
-}
-
-deleteUser(userId: number) {
-  if (!confirm('Are you sure you want to delete this user?')) return;
-
-  this.http.delete(`http://localhost:8080/api/users/${userId}`)
-    .subscribe({
+    this.http.put(
+      `http://localhost:8080/api/users/${this.editingUserId}`,
+      this.user
+    ).subscribe({
       next: () => {
-        // Remove deleted user from local array
-        this.users = this.users.filter(u => u.id !== userId);
+        this.loadUsers();
+        this.cancelEdit();
       },
-      error: err => console.error('Failed to delete user', err)
+      error: err => console.error('Update failed', err)
     });
-}
+  }
 
+  deleteUser(id: number) {
+    if (!confirm('Delete this user?')) return;
+
+    this.http.delete(`http://localhost:8080/api/users/${id}`)
+      .subscribe({
+        next: () => this.users = this.users.filter(u => u.id !== id),
+        error: err => console.error('Delete failed', err)
+      });
+  }
 }

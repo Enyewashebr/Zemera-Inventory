@@ -18,9 +18,9 @@ public class BranchRepository {
     // create a new branch
     public Future<Branch> createBranch(Branch b) {
         String sql = """
-            INSERT INTO branches (name, phone)
+            INSERT INTO branches (branch_name, phone)
             VALUES ($1, $2)
-            RETURNING id, name, phone, created_at
+            RETURNING id, branch_name, phone, created_at
             """;
 
         return client
@@ -30,7 +30,7 @@ public class BranchRepository {
                 Row row = rs.iterator().next();
                 return new Branch(
                     row.getInteger("id"),
-                    row.getString("name"),
+                    row.getString("branch_name"),
                     row.getString("phone"),
                     row.getLocalDateTime("created_at").toString()
                 );
@@ -46,14 +46,14 @@ public class BranchRepository {
 
 
     public Future<List<Branch>> getAllBranches() {
-        String sql = "SELECT id, name, phone, created_at FROM branches ORDER BY id";
+        String sql = "SELECT id, branch_name, phone, created_at FROM branches ORDER BY id";
         return client.query(sql).execute()
             .map(rs -> {
                 List<Branch> list = new ArrayList<>();
                 for (Row row : rs) {
                     list.add(new Branch(
                         row.getInteger("id"),
-                        row.getString("name"),
+                        row.getString("branch_name"),
                         row.getString("phone"),
                         row.getLocalDateTime("created_at").toString()
                     ));

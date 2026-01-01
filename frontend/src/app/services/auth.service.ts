@@ -84,8 +84,8 @@ export class AuthService {
     return this.authSubject.value?.token ?? null;
   }
 
-  getBranchId(): number | null {
-    return this.authSubject.value?.branchId ?? null;
+  getname(): string | null {
+    return this.authSubject.value?.name ?? null;
   }
 
   // ======================
