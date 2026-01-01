@@ -16,6 +16,15 @@
           </select>
           <span class="error" *ngIf="formErrors.productId">{{ formErrors.productId }}</span>
         </label>
+        <!-- <label> -->
+  <!-- <span>Category</span>
+  <input type="text" [value]="selectedCategoryName" readonly />
+</label>
+
+<label>
+  <span>Subcategory</span>
+  <input type="text" [value]="selectedSubcategory" readonly />
+</label> -->
 
         <label>
           <span>Quantity *</span>
@@ -31,7 +40,7 @@
 
         <label>
           <span>Purchase Date *</span>
-          <input type="date" name="date" [(ngModel)]="form.date" required>
+          <input type="date" name="purchaseDate" [(ngModel)]="form.purchaseDate" required>
           <span class="error" *ngIf="formErrors.date">{{ formErrors.date }}</span>
         </label>
 
@@ -64,11 +73,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let row of purchases">
-            <td>{{ row.date }}</td>
-            <td>{{ row.productName }}</td>
+            <td>{{ row.purchaseDate }}</td>
+            <td>{{ row.productId }}</td>
             <td>{{ row.quantity }}</td>
-            <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
-            <td>{{ row.totalCost | currency:'ETB':'symbol':'1.2-2' }}</td>
+            <td>{{ row.unitPrice}}</td>
+            <td>{{ row.totalCost}}</td>
             <td>{{ row.status }}</td>
             <td>{{ row.approvedBy || '—' }}</td>
           </tr>

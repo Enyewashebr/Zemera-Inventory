@@ -1,197 +1,107 @@
 .purchases {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 1.25rem;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
-  display: grid;
-  gap: 1rem;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  color: #333;
 }
 
 .section-header h2 {
-  margin: 0;
-  font-size: 1.2rem;
+  margin-bottom: 5px;
 }
 
 .section-header p {
-  margin: 0.25rem 0 1rem;
-  color: #475569;
+  color: #666;
+  font-size: 14px;
 }
 
 .layout {
-  display: grid;
-  grid-template-columns: 1.1fr 1.2fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.form-card,
-.history-card {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
-}
-
-.form-card h3,
-.history-card h3 {
-  margin: 0;
-}
-
-.hint {
-  margin: 0.25rem 0 0.75rem;
-  color: #64748b;
-  font-size: 0.92rem;
-}
-
-.purchase-form {
-  display: grid;
-  gap: 0.75rem;
-}
-
-label {
-  display: grid;
-  gap: 0.3rem;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-select,
-input {
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 0.6rem 0.75rem;
-  background: #ffffff;
-  font-size: 1rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-select:focus,
-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  outline: none;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem;
-}
-
-.auto-row {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 10px;
-  background: #e5edff;
-  border: 1px solid #c7d2fe;
-  font-size: 0.95rem;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-.auto-label {
+.form-card, .history-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  flex: 1 1 400px;
+}
+
+.purchase-form label {
   display: block;
-  color: #475569;
+  margin-bottom: 15px;
+}
+
+.purchase-form label span {
+  display: block;
+  margin-bottom: 5px;
   font-weight: 600;
 }
 
-.auto-value {
-  display: block;
-  color: #111827;
-  font-weight: 700;
+.purchase-form input,
+.purchase-form select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.purchase-form .error {
+  color: #e74c3c;
+  font-size: 12px;
+}
+
+.purchase-form .success {
+  color: #2ecc71;
+  margin-top: 10px;
 }
 
 .actions {
+  margin-top: 15px;
   display: flex;
-  gap: 0.6rem;
+  gap: 10px;
 }
 
-.primary,
-.ghost {
-  border-radius: 12px;
-  padding: 0.65rem 1rem;
-  border: 1px solid transparent;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.primary {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+button.primary {
+  background: #3498db;
   color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+button.primary:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
 }
 
-.ghost {
+button.ghost {
   background: transparent;
-  color: #1e293b;
-  border-color: #cbd5e1;
+  border: 1px solid #ccc;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.ghost:hover {
-  background: #e5e7eb;
-}
-
-.error {
-  color: #dc2626;
-  font-size: 0.9rem;
-}
-
-.success {
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  background: #ecfdf3;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-  font-size: 0.9rem;
-}
-
-.table-wrapper {
-  margin-top: 0.75rem;
-  overflow: auto;
-}
-
-table {
+.history-card table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  margin-top: 10px;
 }
 
-th,
-td {
-  padding: 0.55rem 0.55rem;
+.history-card th, .history-card td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-  color: #0f172a;
 }
 
-th {
-  font-size: 0.9rem;
-  color: #475569;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.history-card th {
+  background: #f7f7f7;
 }
 
 .empty-row {
   text-align: center;
-  color: #94a3b8;
-  font-style: italic;
+  color: #888;
 }
-
-@media (max-width: 960px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-
-
-

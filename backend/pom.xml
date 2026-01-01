@@ -84,6 +84,11 @@
     <artifactId>jaxb-runtime</artifactId>
     <version>2.3.1</version>
 </dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.datatype</groupId>
+    <artifactId>jackson-datatype-jsr310</artifactId>
+    <version>2.16.2</version> <!-- use your Jackson version -->
+</dependency>
 
 
 

@@ -1,16 +1,22 @@
 package com.zemera.inventory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.zemera.inventory.config.DatabaseConfig;
 import com.zemera.inventory.handler.AuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
-import com.zemera.inventory.service.ProductService;
-import com.zemera.inventory.service.AuthService;
-import com.zemera.inventory.util.JwtUtil;
+import com.zemera.inventory.handler.PurchaseHandler;
 import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.repository.ProductRepository;
+import com.zemera.inventory.repository.PurchaseRepository;
+import com.zemera.inventory.service.AuthService;
+import com.zemera.inventory.service.ProductService;
+import com.zemera.inventory.service.PurchaseService;
+import com.zemera.inventory.util.JwtUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
@@ -21,10 +27,13 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) {
 
-        // 1️⃣ Create router
+        // ✅ FIX: Register JavaTime support (LocalDate, LocalDateTime)
+        ObjectMapper mapper = DatabindCodec.mapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         Router router = Router.router(vertx);
 
-        // 2️⃣ Enable CORS for Angular frontend (localhost:4200)
         router.route().handler(
             CorsHandler.create("http://localhost:4200")
                 .allowedMethod(HttpMethod.GET)
@@ -35,25 +44,16 @@ public class MainVerticle extends AbstractVerticle {
                 .allowedHeader("Authorization")
         );
 
-        // 3️⃣ Enable request body parsing for POST/PUT requests
         router.route().handler(BodyHandler.create());
 
-        // 4️⃣ Health check endpoint
-        router.get("/health").handler(ctx -> {
+        router.get("/health").handler(ctx ->
             ctx.json(new io.vertx.core.json.JsonObject()
-                    .put("status", "UP")
-                    .put("service", "inventory-backend"));
-        });
+                .put("status", "UP")
+                .put("service", "inventory-backend"))
+        );
 
-        // 5️⃣ Simple test endpoint
-        router.get("/hello").handler(ctx -> {
-            ctx.response().end("Hello from Vert.x HTTP API 🚀");
-        });
-
-        // 6️⃣ Create database client
         Pool client = (Pool) DatabaseConfig.createClient(vertx);
 
-        // 7️⃣ Test database connection
         client.query("SELECT 1").execute(ar -> {
             if (ar.succeeded()) {
                 System.out.println("✅ PostgreSQL connection successful!");
@@ -62,27 +62,35 @@ public class MainVerticle extends AbstractVerticle {
             }
         });
 
-        // 8️⃣ Initialize repository, service, and handler for Products
-        ProductRepository productRepository = new ProductRepository(client);
-        ProductService productService = new ProductService(productRepository);
+        // Product
+        ProductRepository productRepo = new ProductRepository(client);
+        ProductService productService = new ProductService(productRepo);
         ProductHandler productHandler = new ProductHandler(productService);
 
-        // 9️⃣ Initialize repository, JWT util, service, and handler for Auth
+        // Auth
         AuthRepository authRepo = new AuthRepository(client);
         JwtUtil jwtUtil = new JwtUtil();
         AuthService authService = new AuthService(authRepo, jwtUtil);
         AuthHandler authHandler = new AuthHandler(authService);
 
-        // 10️⃣ Product API routes
-        router.get("/api/products").handler(productHandler::getAllProducts); // GET all products
-        router.post("/api/products").handler(productHandler::createProduct); // CREATE product
-        router.put("/api/products/:id").handler(productHandler::updateProduct); // UPDATE product
+        // Purchase
+        PurchaseRepository purchaseRepo = new PurchaseRepository(client);
+        PurchaseService purchaseService = new PurchaseService(purchaseRepo);
+        PurchaseHandler purchaseHandler = new PurchaseHandler(purchaseService);
 
-        // 11️⃣ Auth API routes
-        router.post("/api/auth/login").handler(authHandler::loginUser); // LOGIN endpoint
-        router.post("/api/auth/create").handler(authHandler::registerUser); // optional GET login test
+        router.get("/api/products").handler(productHandler::getAllProducts);
+        router.post("/api/products").handler(productHandler::createProduct);
+        router.put("/api/products/:id").handler(productHandler::updateProduct);
 
-        // 12️⃣ Start HTTP server
+        router.post("/api/auth/login").handler(authHandler::loginUser);
+        router.post("/api/auth/create").handler(authHandler::registerUser);
+
+        router.post("/api/purchase/create").handler(purchaseHandler::createPurchase);
+        router.get("/api/purchase/getAll").handler(purchaseHandler::getAllPurchases);
+        router.get("/api/purchase/getById/:id").handler(purchaseHandler::getPurchaseById);
+        router.put("/api/purchase/update/:id").handler(purchaseHandler::updatePurchase);
+        router.delete("/api/purchase/delete/:id").handler(purchaseHandler::deletePurchase);
+
         vertx.createHttpServer()
             .requestHandler(router)
             .listen(8080, http -> {

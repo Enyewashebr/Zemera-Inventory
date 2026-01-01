@@ -21,7 +21,7 @@ export interface Purchase {
   providedIn: 'root'
 })
 export class PurchaseService {
-  private baseUrl = 'http://localhost:8080/api/purchases';
+  private baseUrl = 'http://localhost:8080/api/purchase';
 
   constructor(private http: HttpClient) {}
 

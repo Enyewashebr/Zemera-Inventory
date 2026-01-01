@@ -1,5 +1,36 @@
 package com.zemera.inventory.service;
 
+import com.zemera.inventory.model.Purchase;
+import com.zemera.inventory.repository.PurchaseRepository;
+import io.vertx.core.Future;
+
+import java.util.List;
+
 public class PurchaseService {
-    
+
+    private final PurchaseRepository repo;
+
+    public PurchaseService(PurchaseRepository repo) {
+        this.repo = repo;
+    }
+
+    public Future<Purchase> createPurchase(Purchase p) {
+        return repo.create(p);
+    }
+
+    public Future<List<Purchase>> getAllPurchases() {
+        return repo.getAll();
+    }
+
+    public Future<Purchase> getPurchaseById(Long id) {
+        return repo.getById(id);
+    }
+
+    public Future<Purchase> updatePurchase(Long id, Purchase p) {
+        return repo.update(id, p);
+    }
+
+    public Future<Void> deletePurchase(Long id) {
+        return repo.delete(id);
+    }
 }
