@@ -2,24 +2,26 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
 
 interface Product {
   id: number;
   name: string;
   unit: string;
 }
-
+interface Branch {
+  id: number;
+  name: string;
+}
 interface Purchase {
-  date: string;
+  id: number;
+  purchaseDate: string;
   productId: number;
-  productName: string;
-  purchaseDate: number;
-  // categoryId: string;
-  // subcategory: string;
+  productName?: string;
   quantity: number;
   unitPrice: number;
   totalCost: number;
-  status: string;
+  status: 'PENDING' | 'APPROVED' | 'DECLINED';
   approvedBy?: string;
 }
 
@@ -31,56 +33,54 @@ interface Purchase {
   styleUrls: ['./purchases.component.css']
 })
 export class PurchasesComponent implements OnInit {
+
   products: Product[] = [];
   purchases: Purchase[] = [];
+
+  branches: Branch[] = [];
+selectedBranchId?: number;
+
+  isBranchManager = false;
+  isSuperManager = false;
 
   form = {
     productId: '',
     quantity: 1,
     unitPrice: 0,
-    purchaseDate: new Date().toISOString().split('T')[0] // default today
+    purchaseDate: new Date().toISOString().split('T')[0]
   };
-selectedCategoryName = '';
-selectedSubcategory = '';
-
-
 
   formErrors: any = {};
-  totalCost: number = 0;
-  successMessage: string = '';
-  isSaving: boolean = false;
+  totalCost = 0;
+  successMessage = '';
+  isSaving = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
+    const role = this.authService.getUserRole();
+    this.isBranchManager = role === 'BRANCH_MANAGER';
+    this.isSuperManager = role === 'SUPER_MANAGER';
+
     this.loadProducts();
     this.loadPurchases();
   }
 
   loadProducts() {
     this.http.get<Product[]>('http://localhost:8080/api/products')
-      .subscribe({
-        next: (data) => this.products = data,
-        error: (err) => console.error('Error loading products', err)
-      });
+      .subscribe(data => this.products = data);
   }
 
   loadPurchases() {
     this.http.get<Purchase[]>('http://localhost:8080/api/purchase/getAll')
-      .subscribe({
-        next: (data) => this.purchases = data,
-        error: (err) => console.error('Error loading purchases', err)
-      });
-  }
-
-  onProductChange() {
-    this.calculateTotal();
+      .subscribe(data => this.purchases = data);
   }
 
   calculateTotal() {
-    const qty = Number(this.form.quantity);
-    const price = Number(this.form.unitPrice);
-    this.totalCost = qty && price ? qty * price : 0;
+    this.totalCost = Number(this.form.quantity) * Number(this.form.unitPrice);
   }
 
   validateForm(): boolean {
@@ -88,58 +88,53 @@ selectedSubcategory = '';
     let valid = true;
 
     if (!this.form.productId) {
-      this.formErrors.productId = 'Product is required.';
+      this.formErrors.productId = 'Product is required';
       valid = false;
     }
-
-    if (!this.form.quantity || this.form.quantity <= 0) {
-      this.formErrors.quantity = 'Quantity must be greater than zero.';
+    if (this.form.quantity <= 0) {
+      this.formErrors.quantity = 'Quantity must be > 0';
       valid = false;
     }
-
-    if (!this.form.unitPrice || this.form.unitPrice < 0) {
-      this.formErrors.unitPrice = 'Unit price must be non-negative.';
+    if (this.form.unitPrice < 0) {
+      this.formErrors.unitPrice = 'Invalid price';
       valid = false;
     }
-
-    if (!this.form.purchaseDate) {
-      this.formErrors.purchaseDate = 'Date is required.';
-      valid = false;
-    }
-
     return valid;
   }
 
   savePurchase() {
     if (!this.validateForm()) return;
 
+    const payload = {
+      productId: Number(this.form.productId),
+      quantity: Number(this.form.quantity),
+      unitPrice: Number(this.form.unitPrice),
+      totalCost: this.totalCost,
+      purchaseDate: this.form.purchaseDate,
+      status: 'PENDING'
+    };
+
     this.isSaving = true;
 
-   const purchasePayload = {
-  productId: Number(this.form.productId),   // ✅ force number
-  quantity: Number(this.form.quantity),
-  unitPrice: Number(this.form.unitPrice),
-  purchaseDate: Number(this.form.purchaseDate),
-  totalCost: this.totalCost,
-  status: 'PENDING',                         // ✅ REQUIRED
-  approvedBy: null
-};
-
-console.log('Sending purchase payload:', purchasePayload);
-    this.http.post('http://localhost:8080/api/purchase/create', purchasePayload)
-      .subscribe({
-        next: () => {
-          this.successMessage = 'Purchase saved successfully!';
-          this.clearForm();
-          this.loadPurchases();
-          this.isSaving = false;
-          setTimeout(() => this.successMessage = '', 3000);
-        },
-        error: (err) => {
-          console.error('Error saving purchase', err);
-          this.isSaving = false;
-        }
+    this.http.post('http://localhost:8080/api/purchase/create', payload)
+      .subscribe(() => {
+        this.successMessage = 'Purchase saved (Pending approval)';
+        this.clearForm();
+        this.loadPurchases();
+        this.isSaving = false;
+        setTimeout(() => this.successMessage = '', 3000);
       });
+  }
+
+  approvePurchase(id: number) {
+    this.http.put(`http://localhost:8080/api/purchase/${id}/approve`, {})
+      .subscribe(() => this.loadPurchases());
+  }
+
+  declinePurchase(id: number) {
+    this.http.put(`http://localhost:8080/api/purchase/${id}/decline`, {
+      comment: 'Declined by super manager'
+    }).subscribe(() => this.loadPurchases());
   }
 
   clearForm() {

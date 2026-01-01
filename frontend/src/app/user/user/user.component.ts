@@ -1,25 +1,40 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { User } from '../../model/user.model';
-import e from 'cors';
-
-
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  templateUrl: './user.component.html'
+  imports: [CommonModule, HttpClientModule],
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
 })
-export class UserComponent {
+export class UserComponent implements OnInit {
 
-  users: User[] = [
-    { id: 1, username: 'manager1', role: 'BRANCH_MANAGER', branchId: 1, active: true },
-    { id: 2, username: 'manager2', role: 'BRANCH_MANAGER', branchId: 2, active: false }
-  ];
+  users: User[] = [];
+  branches: any[] = [];
 
-  toggleStatus(user: User) {
-    user.active = !user.active;
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadBranches();
+    this.loadUsers();
+  }
+
+  loadUsers() {
+    this.http.get<User[]>('http://localhost:8080/api/users')
+      .subscribe(res => this.users = res);
+  }
+
+  loadBranches() {
+    this.http.get<any[]>('http://localhost:8080/api/branches')
+      .subscribe(res => this.branches = res);
+  }
+
+  getBranchName(branchId?: number | null): string {
+    if (!branchId) return 'All';
+    const branch = this.branches.find(b => b.id === branchId);
+    return branch ? branch.name : 'Unknown';
   }
 }
-
-
-export default UserComponent;

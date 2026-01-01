@@ -1,16 +1,5 @@
 .purchases {
   padding: 20px;
-  font-family: Arial, sans-serif;
-  color: #333;
-}
-
-.section-header h2 {
-  margin-bottom: 5px;
-}
-
-.section-header p {
-  color: #666;
-  font-size: 14px;
 }
 
 .layout {
@@ -24,81 +13,52 @@
   padding: 20px;
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  flex: 1 1 400px;
+  flex: 1 1 420px;
 }
 
 .purchase-form label {
   display: block;
-  margin-bottom: 15px;
-}
-
-.purchase-form label span {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
+  margin-bottom: 12px;
 }
 
 .purchase-form input,
 .purchase-form select {
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-.purchase-form .error {
-  color: #e74c3c;
-  font-size: 12px;
-}
-
-.purchase-form .success {
-  color: #2ecc71;
-  margin-top: 10px;
-}
-
-.actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
+  padding: 8px;
 }
 
 button.primary {
-  background: #3498db;
-  color: #fff;
+  background: #2c7be5;
+  color: white;
+  padding: 8px 14px;
   border: none;
-  padding: 10px 16px;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-button.primary:disabled {
-  background: #95a5a6;
-  cursor: not-allowed;
 }
 
 button.ghost {
-  background: transparent;
   border: 1px solid #ccc;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 8px 14px;
+  background: transparent;
 }
 
-.history-card table {
-  width: 100%;
-  border-collapse: collapse;
+.error {
+  color: red;
+  font-size: 12px;
+}
+
+.success {
+  color: green;
   margin-top: 10px;
 }
 
-.history-card th, .history-card td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.history-card th {
-  background: #f7f7f7;
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
 }
 
 .empty-row {

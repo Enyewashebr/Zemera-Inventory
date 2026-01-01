@@ -104,6 +104,40 @@ public class PurchaseRepository {
         });
 }
 
+
+public Future<List<Purchase>> getByBranchId(Long branchId) {
+
+    String sql = """
+        SELECT
+            p.id,
+            p.product_id,
+            pr.name AS product_name,
+            p.quantity,
+            p.unit_price,
+            p.total_cost,
+            p.purchase_date,
+            p.status,
+            p.approved_by,
+            p.created_at,
+            p.updated_at
+        FROM purchase p
+        JOIN products pr ON pr.id = p.product_id
+        WHERE p.branch_id = $1
+        ORDER BY p.created_at DESC
+    """;
+
+    return client
+        .preparedQuery(sql)
+        .execute(Tuple.of(branchId))
+        .map(rs -> {
+            List<Purchase> list = new ArrayList<>();
+            for (Row row : rs) {
+                list.add(mapRowToPurchase(row));
+            }
+            return list;
+        });
+}
+
     // Get purchase by ID
    public Future<Purchase> getById(Long id) {
 

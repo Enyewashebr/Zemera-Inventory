@@ -62,13 +62,15 @@ public class AuthService {
 
         Integer userId = user.getInteger("id");
         String role = user.getString("role");
+        Integer branchId = user.getInteger("branch_id");
 
-        String token = jwtUtil.generateToken(userId, username, role);
+        String token = jwtUtil.generateToken(userId, username, role, branchId);
 
         JsonObject response = new JsonObject()
                 .put("id", userId)
                 .put("username", username)
                 .put("role", role)
+                .put("branchId", branchId)
                 .put("token", token);
 
         return Future.succeededFuture(response);

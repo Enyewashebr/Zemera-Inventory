@@ -1,0 +1,46 @@
+<section class="branch-management">
+  <h2>Branch Management</h2>
+
+  <div class="form-card">
+    <h3>Add Branch</h3>
+    <form (ngSubmit)="saveBranch()">
+      <label>
+        Branch Name *
+        <input type="text" [(ngModel)]="newBranch.name" name="branchName" required />
+      </label>
+      <label>
+        Phone
+        <input type="text" [(ngModel)]="newBranch.phone" name="phone" />
+      </label>
+
+      <button type="submit" [disabled]="isSaving">Save Branch</button>
+    </form>
+    <div class="success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  </div>
+
+  <div class="list-card">
+    <h3>All Branches</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let branch of branches">
+          <td>{{ branch.id }}</td>
+          <td>{{ branch.name }}</td>
+          <td>{{ branch.phone || '-' }}</td>
+          <td>{{ branch.createdAt | date:'short' }}</td>
+        </tr>
+        <tr *ngIf="branches.length === 0">
+          <td colspan="4">No branches found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

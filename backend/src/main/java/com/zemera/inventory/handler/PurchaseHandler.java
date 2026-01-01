@@ -66,6 +66,24 @@ public class PurchaseHandler {
         });
     }
 
+    public void getPurchasesByBranch(RoutingContext ctx) {
+    Long branchId = Long.valueOf(ctx.pathParam("branchId"));
+
+    purchaseService.getPurchasesByBranch(branchId)
+        .onComplete(ar -> {
+            if (ar.succeeded()) {
+                ctx.response()
+                    .putHeader("Content-Type", "application/json")
+                    .end(Json.encodePrettily(ar.result()));
+            } else {
+                ctx.response()
+                    .setStatusCode(500)
+                    .end(ar.cause().getMessage());
+            }
+        });
+}
+
+
     public void deletePurchase(RoutingContext ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         purchaseService.deletePurchase(id).onComplete(ar -> {

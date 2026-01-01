@@ -1,19 +1,28 @@
-<table>
-  <thead>
-    <tr>
-      <th>Username</th>
-      <th>Role</th>
-      <th>Branch</th>
-    </tr>
-  </thead>
+<section class="card">
+  <h2>System Users</h2>
 
-  <tbody>
-    @for (user of users; track user.id) {
+  <table>
+    <thead>
       <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Branch</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let user of users">
         <td>{{ user.username }}</td>
         <td>{{ user.role }}</td>
-        <td>{{ user.branchId ?? 'All' }}</td>
+        <td>{{ getBranchName(user.branchId) }}</td>
+        <td>
+          <span [class.active]="user.active"
+                [class.inactive]="!user.active">
+            {{ user.active ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
       </tr>
-    }
-  </tbody>
-</table>
+    </tbody>
+  </table>
+</section>

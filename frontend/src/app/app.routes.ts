@@ -10,6 +10,7 @@ import { PurchasesComponent } from './purchases/purchases.component';
 import { ReportsComponent } from './reports/reports.component';
 import { SettingsComponent } from './settings/settings.component';
 import { UserComponent } from './user/user/user.component';
+import { BranchComponent } from './branch/branch.component';
 import { UserFormComponent } from './user/user-form/user-form.component';
 import { SuperDashboardComponent } from './dashboard/super-dashboard/super-dashboard.component';
 import { BranchDashboardComponent } from './dashboard/branch-dashboard/branch-dashboard.component';
@@ -38,7 +39,8 @@ export const routes: Routes = [
 
       // SUPER_MANAGER only
       { path: 'users', component: UserComponent, canActivate: [AuthGuard], data: { roles: ['SUPER_MANAGER'] } },
-      { path: 'create-user', component: UserFormComponent, canActivate: [AuthGuard], data: { roles: ['SUPER_MANAGER'] } }
+      { path: 'create-user', component: UserFormComponent, canActivate: [AuthGuard], data: { roles: ['SUPER_MANAGER'] } },
+      {path: 'branches', component: BranchComponent,  canActivate: [AuthGuard], data: { roles: ['SUPER_MANAGER'] }}
     ]
   },
 

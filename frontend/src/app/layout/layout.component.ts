@@ -31,7 +31,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   get navItems() {
     // add users menu only for super managers
     if (this.auth.isAdmin()) {
-      return [...this.baseNavItems, { path: '/users', label: 'Users' }, { path: '/create-user', label: 'Add User' }];
+      return [...this.baseNavItems, { path: '/users', label: 'Users' }, { path: '/branches', label: 'Branches' }, { path: '/create-user', label: 'Add User' }];
     }
     return this.baseNavItems;
   }

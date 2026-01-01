@@ -1,62 +1,61 @@
 <section class="purchases">
+
   <div class="section-header">
     <h2>Purchase Management</h2>
-    <p>Record incoming stock and track approval status.</p>
+    <p>Branch managers record purchases. Super manager approves or declines.</p>
   </div>
 
   <div class="layout">
-    <div class="form-card">
+
+    <!-- ADD PURCHASE FORM (Only Branch Manager) -->
+    <div class="form-card" *ngIf="isBranchManager">
       <h3>Add Purchase</h3>
+
       <form (ngSubmit)="savePurchase()" class="purchase-form">
+
         <label>
           <span>Product *</span>
-          <select name="productId" [(ngModel)]="form.productId" (change)="onProductChange()" required>
+          <select [(ngModel)]="form.productId" name="productId" required>
             <option value="" disabled>Select product</option>
-            <option *ngFor="let p of products" [value]="p.id">{{ p.name }} ({{ p.unit }})</option>
+            <option *ngFor="let p of products" [value]="p.id">
+              {{ p.name }} ({{ p.unit }})
+            </option>
           </select>
           <span class="error" *ngIf="formErrors.productId">{{ formErrors.productId }}</span>
         </label>
-        <!-- <label> -->
-  <!-- <span>Category</span>
-  <input type="text" [value]="selectedCategoryName" readonly />
-</label>
-
-<label>
-  <span>Subcategory</span>
-  <input type="text" [value]="selectedSubcategory" readonly />
-</label> -->
 
         <label>
           <span>Quantity *</span>
-          <input type="number" name="quantity" min="1" [(ngModel)]="form.quantity" (input)="calculateTotal()" required>
+          <input type="number" [(ngModel)]="form.quantity" name="quantity" min="1" (input)="calculateTotal()">
           <span class="error" *ngIf="formErrors.quantity">{{ formErrors.quantity }}</span>
         </label>
 
         <label>
           <span>Unit Price *</span>
-          <input type="number" name="unitPrice" min="0" step="0.01" [(ngModel)]="form.unitPrice" (input)="calculateTotal()" required>
+          <input type="number" [(ngModel)]="form.unitPrice" name="unitPrice" min="0" step="0.01" (input)="calculateTotal()">
           <span class="error" *ngIf="formErrors.unitPrice">{{ formErrors.unitPrice }}</span>
         </label>
 
         <label>
           <span>Purchase Date *</span>
-          <input type="date" name="purchaseDate" [(ngModel)]="form.purchaseDate" required>
-          <span class="error" *ngIf="formErrors.date">{{ formErrors.date }}</span>
+          <input type="date" [(ngModel)]="form.purchaseDate" name="purchaseDate" required>
         </label>
 
         <div>
-          <span>Total Cost: {{ totalCost | currency:'ETB':'symbol':'1.2-2' }}</span>
+          Total Cost: {{ totalCost | currency:'ETB':'symbol':'1.2-2' }}
         </div>
 
         <div class="actions">
           <button class="primary" type="submit" [disabled]="isSaving">Save Purchase</button>
-          <button type="button" class="ghost" (click)="clearForm()">Clear Form</button>
+          <button class="ghost" type="button" (click)="clearForm()">Clear Form</button>
         </div>
 
         <div class="success" *ngIf="successMessage">{{ successMessage }}</div>
+
       </form>
     </div>
 
+    <!-- PURCHASE HISTORY TABLE -->
     <div class="history-card">
       <h3>Purchase History</h3>
       <table>
@@ -69,23 +68,33 @@
             <th>Total Cost</th>
             <th>Status</th>
             <th>Approved By</th>
+            <th *ngIf="isSuperManager">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let row of purchases">
-            <td>{{ row.purchaseDate }}</td>
-            <td>{{ row.productId }}</td>
-            <td>{{ row.quantity }}</td>
-            <td>{{ row.unitPrice}}</td>
-            <td>{{ row.totalCost}}</td>
-            <td>{{ row.status }}</td>
-            <td>{{ row.approvedBy || '—' }}</td>
+          <tr *ngFor="let p of purchases">
+            <td>{{ p.purchaseDate }}</td>
+            <td>{{ p.productName || p.productId }}</td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ p.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+            <td>{{ p.totalCost | currency:'ETB':'symbol':'1.2-2' }}</td>
+            <td>{{ p.status }}</td>
+            <td>{{ p.approvedBy || '—' }}</td>
+            <td *ngIf="isSuperManager">
+              <button *ngIf="p.status === 'PENDING'" class="primary" (click)="approvePurchase(p.id)">
+                Approve
+              </button>
+              <button *ngIf="p.status === 'PENDING'" class="ghost" (click)="declinePurchase(p.id)">
+                Decline
+              </button>
+            </td>
           </tr>
           <tr *ngIf="purchases.length === 0">
-            <td colspan="7" class="empty-row">No purchases recorded yet.</td>
+            <td colspan="8" class="empty-row">No purchases recorded yet.</td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </section>

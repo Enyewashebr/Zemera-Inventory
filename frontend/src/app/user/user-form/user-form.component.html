@@ -1,7 +1,18 @@
 <section class="card">
-  <h2>Create User</h2>
+  <h2>Create Branch Manager</h2>
 
   <form (ngSubmit)="save()">
+
+    <label>
+      Full Name
+      <input [(ngModel)]="user.fullName" name="fullName" required />
+    </label>
+
+    <label>
+      Phone Number
+      <input [(ngModel)]="user.phone" name="phone" required />
+    </label>
+
     <label>
       Username
       <input [(ngModel)]="user.username" name="username" required />
@@ -9,24 +20,25 @@
 
     <label>
       Password
-      <input type="password" [(ngModel)]="user.password" name="password" required />
+      <input type="password"
+             [(ngModel)]="user.password"
+             name="password"
+             required />
     </label>
 
     <label>
-      Role
-      <select [(ngModel)]="user.role" name="role">
-        <option value="BRANCH_MANAGER">Branch Manager</option>
-      </select>
-    </label>
+  Branch
+  <select [(ngModel)]="user.branchId" name="branchId" required>
+    <option value="" disabled>Select branch</option>
+    <option *ngFor="let b of branches" [value]="b.id">{{ b.name }}</option>
+  </select>
+</label>
 
-    <label>
-      Branch
-      <select [(ngModel)]="user.branchId" name="branch">
-        <option [value]="1">Branch 1</option>
-        <option [value]="2">Branch 2</option>
-      </select>
-    </label>
 
-    <button type="submit">Save</button>
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Saving...' : 'Create User' }}
+    </button>
+
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
   </form>
 </section>

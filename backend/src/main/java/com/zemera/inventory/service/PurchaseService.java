@@ -29,7 +29,9 @@ public class PurchaseService {
     public Future<Purchase> updatePurchase(Long id, Purchase p) {
         return repo.update(id, p);
     }
-
+    public Future<List<Purchase>> getPurchasesByBranch(Long branchId) {
+    return repo.getByBranchId(branchId);
+}
     public Future<Void> deletePurchase(Long id) {
         return repo.delete(id);
     }

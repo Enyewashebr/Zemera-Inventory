@@ -5,7 +5,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.zemera.inventory.config.DatabaseConfig;
 import com.zemera.inventory.handler.AuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
+import com.zemera.inventory.handler.BranchHandler;
 import com.zemera.inventory.handler.PurchaseHandler;
+import com.zemera.inventory.repository.BranchRepository;
 import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.repository.ProductRepository;
 import com.zemera.inventory.repository.PurchaseRepository;
@@ -72,24 +74,44 @@ public class MainVerticle extends AbstractVerticle {
         JwtUtil jwtUtil = new JwtUtil();
         AuthService authService = new AuthService(authRepo, jwtUtil);
         AuthHandler authHandler = new AuthHandler(authService);
+        
+
+    
+    
+
 
         // Purchase
         PurchaseRepository purchaseRepo = new PurchaseRepository(client);
         PurchaseService purchaseService = new PurchaseService(purchaseRepo);
         PurchaseHandler purchaseHandler = new PurchaseHandler(purchaseService);
 
+        // branch routes
+        BranchRepository branchRepo = new BranchRepository(client);
+        BranchHandler branchHandler = new BranchHandler(branchRepo);
+
+        // Route to get all branches
+        router.get("/api/branches").handler(branchHandler::getAllBranches);
+        router.post("/api/branches").handler(branchHandler::createBranch);
+
+
+
+        // product routes
         router.get("/api/products").handler(productHandler::getAllProducts);
         router.post("/api/products").handler(productHandler::createProduct);
         router.put("/api/products/:id").handler(productHandler::updateProduct);
 
+        // user auth routes
         router.post("/api/auth/login").handler(authHandler::loginUser);
         router.post("/api/auth/create").handler(authHandler::registerUser);
+        // router.get("/api/users").handler(authHandler::getAllUsers);
 
+        // purchase routes
         router.post("/api/purchase/create").handler(purchaseHandler::createPurchase);
         router.get("/api/purchase/getAll").handler(purchaseHandler::getAllPurchases);
         router.get("/api/purchase/getById/:id").handler(purchaseHandler::getPurchaseById);
         router.put("/api/purchase/update/:id").handler(purchaseHandler::updatePurchase);
         router.delete("/api/purchase/delete/:id").handler(purchaseHandler::deletePurchase);
+         router.get("/api/purchase/branch/:branchId").handler(purchaseHandler::getPurchasesByBranch);
 
         vertx.createHttpServer()
             .requestHandler(router)
