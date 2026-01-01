@@ -98,4 +98,31 @@ try {
             });
     }
 
+    // --- NEW: Get all users ---
+    public void getAllUsers(RoutingContext ctx) {
+    authService.getAllUsers()
+        .onSuccess(users -> {
+            ctx.response()
+               .putHeader("Content-Type", "application/json")
+               .end(users.encode());
+        })
+        .onFailure(err -> {
+            err.printStackTrace();
+            ctx.response().setStatusCode(500).end("Internal Server Error");
+        });
+}
+
+
+
+    // delete user
+    public void deleteUser(RoutingContext ctx) {
+    Integer id = Integer.valueOf(ctx.pathParam("id"));
+    authService.deleteUser(id)
+        .onSuccess(v -> ctx.response().setStatusCode(204).end())
+        .onFailure(err -> {
+            err.printStackTrace();
+            ctx.response().setStatusCode(500).end("Internal Server Error");
+        });
+}
+
 }

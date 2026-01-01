@@ -107,7 +107,9 @@ public class MainVerticle extends AbstractVerticle {
         // user auth routes
         router.post("/api/auth/login").handler(authHandler::loginUser);
         router.post("/api/create-user").handler(authHandler::registerUser);
-        // router.get("/api/users").handler(authHandler::getAllUsers);
+        router.get("/api/users").handler(authHandler::getAllUsers);
+        router.put("/api/users/:id").handler(authHandler::updateUser);
+        router.delete("/api/users/:id").handler(authHandler::deleteUser);
 
         // purchase routes
         router.post("/api/purchase/create").handler(purchaseHandler::createPurchase);

@@ -3,6 +3,7 @@ package com.zemera.inventory.service;
 import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.util.JwtUtil;
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Tuple;
 
@@ -18,6 +19,7 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
+    // register new user
     public Future<JsonObject> registerUser(JsonObject newUser) {
     // Hash the password before saving
     String hashedPassword = BCrypt.hashpw(newUser.getString("password"), BCrypt.gensalt());
@@ -50,6 +52,7 @@ public class AuthService {
             });
 }
 
+    // user login
     public Future<JsonObject> login(String username, String password) {
 
         return repo.findByUsername(username)
@@ -84,4 +87,36 @@ public class AuthService {
     });
 
     }
+
+    // get all users
+    public Future<JsonArray> getAllUsers() {
+    String sql = "SELECT id, full_name, username, email, phone, role, branch_id FROM users";
+
+    return repo.getClient().query(sql)
+        .execute()
+        .map(rows -> {
+            JsonArray array = new JsonArray();
+            for (var row : rows) {
+                JsonObject user = new JsonObject()
+                        .put("id", row.getInteger("id"))
+                        .put("fullName", row.getString("full_name"))
+                        .put("username", row.getString("username"))
+                        .put("email", row.getString("email"))
+                        .put("phone", row.getString("phone"))
+                        .put("role", row.getString("role"))
+                        .put("branchId", row.getInteger("branch_id"));
+                array.add(user);
+            }
+            return array;
+        });
+}
+
+    // delete user by id
+    public Future<Void> deleteUser(Integer id) {
+    String sql = "DELETE FROM users WHERE id = $1";
+    return repo.getClient().preparedQuery(sql)
+            .execute(Tuple.of(id))
+            .mapEmpty();
+}
+
 }

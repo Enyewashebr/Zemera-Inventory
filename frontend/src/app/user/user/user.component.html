@@ -1,28 +1,34 @@
 <section class="card">
   <h2>System Users</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Role</th>
-        <th>Branch</th>
-        <th>Status</th>
-      </tr>
-    </thead>
+ <table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Full Name</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Role</th>
+      <th>Branch</th>
+      <th>Actions</th> <!-- NEW -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of users">
+      <td>{{ user.id }}</td>
+      <td>{{ user.fullName }}</td>
+      <td>{{ user.username }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.phone }}</td>
+      <td>{{ user.role }}</td>
+      <td>{{ user.branchId }}</td>
+      <td>
+        <button (click)="editUser(user)">Edit</button>
+        <button (click)="deleteUser(user.id)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.username }}</td>
-        <td>{{ user.role }}</td>
-        <td>{{ getBranchName(user.branchId) }}</td>
-        <td>
-          <span [class.active]="user.active"
-                [class.inactive]="!user.active">
-            {{ user.active ? 'Active' : 'Inactive' }}
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
 </section>
