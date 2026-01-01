@@ -50,11 +50,20 @@ public class AuthHandler {
             return;
         }
 
+        String fullName = body.getString("fullName");
         String username = body.getString("username");
         String password = body.getString("password");
+        String email = body.getString("email");
+        String phone = body.getString("phone");
         String role = body.getString("role");
-        Integer branchId = body.getInteger("branchId");
-
+        // Integer branchId = body.getInteger("branchId");
+Integer branchId;
+try {
+    branchId = body.getInteger("branchId");
+} catch (Exception e) {
+    ctx.response().setStatusCode(400).end("Invalid branchId");
+    return;
+}
         // Validate input
         if (username == null || username.isBlank() ||
             password == null || password.isBlank() ||
@@ -66,12 +75,15 @@ public class AuthHandler {
 
         // Build user JSON object to pass to service
         JsonObject newUser = new JsonObject()
+                .put("fullName", fullName)
+                .put("email", email)
                 .put("username", username)
                 .put("password", password)
+                .put("phone", phone)
                 .put("role", role)
                 .put("branchId", branchId);
 
-        authService.register(newUser)
+        authService.registerUser(newUser)
             .onSuccess(savedUser -> {
                 ctx.response()
                    .setStatusCode(201)
@@ -80,8 +92,10 @@ public class AuthHandler {
             })
             .onFailure(err -> {
                 ctx.response()
+                 
                    .setStatusCode(500)
                    .end(err.getMessage());
             });
     }
+
 }

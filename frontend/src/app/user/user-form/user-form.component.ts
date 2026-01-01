@@ -14,14 +14,14 @@ import { CommonModule } from '@angular/common';
 export class UserFormComponent implements OnInit {
 
   user = {
-    fullName: '',
-    phone: '',
-    username: '',
-    password: '',
-    role: 'BRANCH_MANAGER',
-    branchId: null as number | null
-  };
-
+  fullName: '',
+  username: '',
+  password: '',
+  email: '',
+  phone: '',
+  role: 'BRANCH_MANAGER',
+  branchId: null as number | null
+};
   
   errorMessage = '';
   loading = false;
@@ -41,10 +41,11 @@ ngOnInit() {
   save() {
     this.loading = true;
 
-    this.http.post('http://localhost:8080/api/auth/create', this.user)
+    this.http.post('http://localhost:8080/api/create-user', this.user)
       .subscribe({
         next: () => this.router.navigate(['/users']),
         error: err => {
+          console.error(err);
           this.errorMessage = err.error || 'Failed to create user';
           this.loading = false;
         }

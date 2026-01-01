@@ -9,6 +9,11 @@
     </label>
 
     <label>
+      Email
+      <input type="email" [(ngModel)]="user.email" name="email" required />
+    </label>
+
+    <label>
       Phone Number
       <input [(ngModel)]="user.phone" name="phone" required />
     </label>
@@ -27,10 +32,18 @@
     </label>
 
     <label>
+      Role
+      <select [(ngModel)]="user.role" name="role" required>
+        <option value="BRANCH_MANAGER">Branch Manager</option>
+        <option value="SUPER_MANAGER">Super Manager</option>
+      </select>
+    </label>
+
+    <label>
   Branch
   <select [(ngModel)]="user.branchId" name="branchId" required>
     <option value="" disabled>Select branch</option>
-    <option *ngFor="let b of branches" [value]="b.id">{{ b.name }}</option>
+    <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
   </select>
 </label>
 

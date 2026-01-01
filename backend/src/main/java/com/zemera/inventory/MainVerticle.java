@@ -36,14 +36,18 @@ public class MainVerticle extends AbstractVerticle {
 
         Router router = Router.router(vertx);
 
+        // ✅ CORS configuration
         router.route().handler(
             CorsHandler.create("http://localhost:4200")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.PUT)
                 .allowedMethod(HttpMethod.DELETE)
+                .allowedMethod(HttpMethod.OPTIONS) // <-- important
                 .allowedHeader("Content-Type")
                 .allowedHeader("Authorization")
+                .allowedHeader("Accept")
+                .allowedHeader("X-Requested-With")
         );
 
         router.route().handler(BodyHandler.create());
@@ -102,7 +106,7 @@ public class MainVerticle extends AbstractVerticle {
 
         // user auth routes
         router.post("/api/auth/login").handler(authHandler::loginUser);
-        router.post("/api/auth/create").handler(authHandler::registerUser);
+        router.post("/api/create-user").handler(authHandler::registerUser);
         // router.get("/api/users").handler(authHandler::getAllUsers);
 
         // purchase routes

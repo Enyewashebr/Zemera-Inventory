@@ -18,30 +18,37 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
-     public Future<JsonObject> register(JsonObject newUser) {
-        // Hash the password before saving
-        String hashedPassword = BCrypt.hashpw(newUser.getString("password"), BCrypt.gensalt());
-        newUser.put("password", hashedPassword);
+    public Future<JsonObject> registerUser(JsonObject newUser) {
+    // Hash the password before saving
+    String hashedPassword = BCrypt.hashpw(newUser.getString("password"), BCrypt.gensalt());
+    newUser.put("password", hashedPassword);
 
-        String sql = "INSERT INTO users(username, password, role, branch_id) " +
-                     "VALUES ($1, $2, $3, $4) RETURNING id, username, role, branch_id";
+    String sql = "INSERT INTO users(full_name, username, password, email, phone, role, branch_id, created_at) " +
+                 "VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) " +
+                 "RETURNING id, username, full_name, email, phone, role, branch_id";
 
-        return repo.getClient().preparedQuery(sql)
-                .execute(Tuple.of(
-                        newUser.getString("username"),
-                        newUser.getString("password"),
-                        newUser.getString("role"),
-                        newUser.getInteger("branchId")
-                ))
-                .map(rows -> {
-                    var row = rows.iterator().next();
-                    return new JsonObject()
-                            .put("id", row.getInteger("id"))
-                            .put("username", row.getString("username"))
-                            .put("role", row.getString("role"))
-                            .put("branchId", row.getInteger("branch_id"));
-                });
-    }
+    return repo.getClient().preparedQuery(sql)
+            .execute(Tuple.of(
+                    newUser.getString("fullName"),
+                    newUser.getString("username"),
+                    newUser.getString("password"),
+                    newUser.getString("email"),
+                    newUser.getString("phone"),
+                    newUser.getString("role"),
+                    newUser.getInteger("branchId")
+            ))
+            .map(rows -> {
+                var row = rows.iterator().next();
+                return new JsonObject()
+                        .put("id", row.getInteger("id"))
+                        .put("username", row.getString("username"))
+                        .put("fullName", row.getString("full_name"))
+                        .put("email", row.getString("email"))
+                        .put("phone", row.getString("phone"))
+                        .put("role", row.getString("role"))
+                        .put("branchId", row.getInteger("branch_id"));
+            });
+}
 
     public Future<JsonObject> login(String username, String password) {
 
