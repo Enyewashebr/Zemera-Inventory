@@ -14,32 +14,36 @@ import { CommonModule } from '@angular/common';
 export class UserFormComponent implements OnInit {
 
   user = {
-  fullName: '',
-  username: '',
-  password: '',
-  email: '',
-  phone: '',
-  role: 'BRANCH_MANAGER',
-  name: '' 
-};
-  
-  errorMessage = '';
+    fullName: '',
+    username: '',
+    password: '',
+    email: '',
+    phone: '',
+    role: 'BRANCH_MANAGER',
+    branchId: 0
+  };
+
+  branches: { id: number; name: string }[] = [];
   loading = false;
+  errorMessage = '';
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  branches: { id: number; name: string }[] = [];
+  ngOnInit() {
+    this.loadBranches();
+  }
 
-ngOnInit() {
-  this.http.get<{id:number,name:string}[]>('http://localhost:8080/api/branches')
-    .subscribe({
-      next: data => this.branches = data,
-      error: err => console.error('Failed to load branches', err)
-    });
-}
+  loadBranches() {
+    this.http.get<{ id: number; name: string }[]>('http://localhost:8080/api/branches')
+      .subscribe({
+        next: data => this.branches = data,
+        error: () => this.errorMessage = 'Failed to load branches'
+      });
+  }
 
   save() {
     this.loading = true;
+    this.errorMessage = '';
 
     this.http.post('http://localhost:8080/api/create-user', this.user)
       .subscribe({

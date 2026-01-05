@@ -66,8 +66,26 @@
     <version>2.15.2</version> <!-- or latest stable -->
 </dependency>
 
-    <!-- JWT library -->
-    <!-- JWT -->
+   <!-- Vert.x Core -->
+    <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-core</artifactId>
+        <version>4.5.7</version>
+    </dependency>
+
+    <!-- Vert.x Web -->
+    <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-web</artifactId>
+        <version>4.5.7</version>
+    </dependency>
+
+    <!-- Vert.x JWT Auth (THIS IS MISSING) -->
+    <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-auth-jwt</artifactId>
+        <version>4.5.7</version>
+    </dependency>
 <dependency>
     <groupId>io.jsonwebtoken</groupId>
     <artifactId>jjwt</artifactId>
@@ -89,6 +107,7 @@
     <artifactId>jackson-datatype-jsr310</artifactId>
     <version>2.16.2</version> <!-- use your Jackson version -->
 </dependency>
+
 
 
 

@@ -26,30 +26,41 @@ public class AuthService {
 
     // Login
     public Future<JsonObject> login(String username, String password) {
-        return repo.findByUsername(username)
-                .compose(user -> {
-                    if (user == null) return Future.failedFuture("User not found");
 
-                    String hashedPassword = user.getString("password");
-                    if (!BCrypt.checkpw(password, hashedPassword)) {
-                        return Future.failedFuture("Invalid credentials");
-                    }
+    return repo.findByUsername(username)
+        .compose(user -> {
 
-                    Integer userId = user.getInteger("id");
-                    String role = user.getString("role");
-                    String name = user.getString("branch_name");
+            if (user == null)
+                return Future.failedFuture("User not found");
 
-                    String token = jwtUtil.generateToken(userId, username, role, name);
+            String hashedPassword = user.getString("password");
+            if (!BCrypt.checkpw(password, hashedPassword))
+                return Future.failedFuture("Invalid credentials");
 
-                    JsonObject response = new JsonObject()
-                            .put("id", userId)
-                            .put("username", username)
-                            .put("role", role)
-                            .put("name", name)
-                            .put("token", token);
-                    return Future.succeededFuture(response);
-                });
-    }
+            Integer userId = user.getInteger("id");
+            String role = user.getString("role");
+            String name = user.getString("branch_name");
+            Integer branchId = user.getInteger("branch_id"); // ✅ FIXED
+
+            String token = jwtUtil.generateToken(
+                userId,
+                username,
+                role,
+                name,
+                branchId
+            );
+
+            return Future.succeededFuture(
+                new JsonObject()
+                    .put("id", userId)
+                    .put("username", username)
+                    .put("role", role)
+                    .put("branch_name", name)
+                    .put("branch_id", branchId)
+                    .put("token", token)
+            );
+        });
+}
 
     // Get all users
     public Future<JsonArray> getAllUsers() {

@@ -65,8 +65,18 @@ selectedBranchId?: number;
     this.isBranchManager = role === 'BRANCH_MANAGER';
     this.isSuperManager = role === 'SUPER_MANAGER';
 
+
+    if (this.isSuperManager) {
+      this.loadBranches();
+    }
+
+    if (this.isBranchManager) {
+      this.loadPurchases();
+    }
+
     this.loadProducts();
     this.loadPurchases();
+    this.loadBranches();
   }
 
   loadProducts() {
@@ -78,6 +88,8 @@ selectedBranchId?: number;
     this.http.get<Purchase[]>('http://localhost:8080/api/purchase/getAll')
       .subscribe(data => this.purchases = data);
   }
+
+ 
 
   calculateTotal() {
     this.totalCost = Number(this.form.quantity) * Number(this.form.unitPrice);
@@ -103,39 +115,90 @@ selectedBranchId?: number;
   }
 
   savePurchase() {
-    if (!this.validateForm()) return;
+  if (!this.validateForm()) return;
 
-    const payload = {
-      productId: Number(this.form.productId),
-      quantity: Number(this.form.quantity),
-      unitPrice: Number(this.form.unitPrice),
-      totalCost: this.totalCost,
-      purchaseDate: this.form.purchaseDate,
-      status: 'PENDING'
-    };
+  const payload = {
+    productId: Number(this.form.productId),
+    quantity: Number(this.form.quantity),
+    unitPrice: Number(this.form.unitPrice),
+    totalCost: this.totalCost,
+    purchaseDate: this.form.purchaseDate,
+    status: 'PENDING'
+  };
 
-    this.isSaving = true;
+  const token = localStorage.getItem('token'); // ✅ get JWT from local storage
+  if (!token) {
+    console.error('No JWT found in localStorage!');
+    return;
+  }
 
-    this.http.post('http://localhost:8080/api/purchase/create', payload)
-      .subscribe(() => {
-        this.successMessage = 'Purchase saved (Pending approval)';
-        this.clearForm();
-        this.loadPurchases();
-        this.isSaving = false;
-        setTimeout(() => this.successMessage = '', 3000);
-      });
+  this.isSaving = true;
+
+  this.http.post('http://localhost:8080/api/purchase/create', payload, {
+    headers: {
+      Authorization: `Bearer ${token}`, // ✅ attach JWT
+      'Content-Type': 'application/json'
+    }
+  }).subscribe({
+    next: () => {
+      this.successMessage = 'Purchase saved (Pending approval)';
+      this.clearForm();
+      this.loadPurchases();
+      this.isSaving = false;
+      setTimeout(() => this.successMessage = '', 3000);
+    },
+    error: err => {
+      console.error('Error saving purchase:', err); // now will see 401 or 400 clearly
+      this.isSaving = false;
+    }
+  });
+}
+
+
+
+
+
+
+  // ==========================
+  // SUPER MANAGER
+  // ==========================
+  loadBranches() {
+    this.http.get<Branch[]>('http://localhost:8080/api/branches')
+      .subscribe(data => this.branches = data);
+  }
+
+  onBranchChange() {
+    if (!this.selectedBranchId) {
+      this.purchases = [];
+      return;
+    }
+
+    this.http.get<Purchase[]>(
+      `http://localhost:8080/api/purchase/branch/${this.selectedBranchId}`
+    ).subscribe(data => this.purchases = data);
   }
 
   approvePurchase(id: number) {
     this.http.put(`http://localhost:8080/api/purchase/${id}/approve`, {})
-      .subscribe(() => this.loadPurchases());
+      .subscribe(() => this.onBranchChange());
   }
 
   declinePurchase(id: number) {
-    this.http.put(`http://localhost:8080/api/purchase/${id}/decline`, {
-      comment: 'Declined by super manager'
-    }).subscribe(() => this.loadPurchases());
+    this.http.put(`http://localhost:8080/api/purchase/${id}/decline`, {})
+      .subscribe(() => this.onBranchChange());
   }
+  
+
+  // approvePurchase(id: number) {
+  //   this.http.put(`http://localhost:8080/api/purchase/${id}/approve`, {})
+  //     .subscribe(() => this.loadPurchases());
+  // }
+
+  // declinePurchase(id: number) {
+  //   this.http.put(`http://localhost:8080/api/purchase/${id}/decline`, {
+  //     comment: 'Declined by super manager'
+  //   }).subscribe(() => this.loadPurchases());
+  // }
 
   clearForm() {
     this.form = {

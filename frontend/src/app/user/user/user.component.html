@@ -1,23 +1,18 @@
-<!-- EDIT FORM -->
+<!-- Edit Form -->
 <section class="card" *ngIf="editingUserId !== null">
   <h2>Edit User</h2>
-
   <form (ngSubmit)="save()">
     <input [(ngModel)]="user.fullName" name="fullName" placeholder="Full name" required />
     <input [(ngModel)]="user.username" name="username" placeholder="Username" required />
     <input [(ngModel)]="user.email" name="email" placeholder="Email" required />
-    <input [(ngModel)]="user.phone" name="phone" placeholder="Phone" required />
-
+    <input [(ngModel)]="user.phone" name="phone" placeholder="Phone" />
     <select [(ngModel)]="user.role" name="role">
       <option value="BRANCH_MANAGER">Branch Manager</option>
       <option value="SUPER_MANAGER">Super Manager</option>
     </select>
-
-    <select [(ngModel)]="user.name" name="name">
-      <option [ngValue]="null">All</option>
-      <option *ngFor="let b of branches" [ngValue]="b.id">
-        {{ b.name }}
-      </option>
+    <select [(ngModel)]="user.branchId" name="branchId">
+      <option [ngValue]="0" disabled>Select branch</option>
+      <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
     </select>
 
     <button type="submit">Save</button>
@@ -25,10 +20,9 @@
   </form>
 </section>
 
-<!-- USERS TABLE -->
+<!-- Users Table -->
 <section class="card">
   <h2>Users</h2>
-
   <table>
     <thead>
       <tr>
@@ -42,7 +36,6 @@
         <th>Actions</th>
       </tr>
     </thead>
-
     <tbody>
       <tr *ngFor="let u of users; let i = index">
         <td>{{ i + 1 }}</td>
@@ -51,7 +44,7 @@
         <td>{{ u.email }}</td>
         <td>{{ u.phone }}</td>
         <td>{{ u.role }}</td>
-        <td>{{ u.name }}</td>
+        <td>{{ getBranchName(u.branchId) }}</td>
         <td>
           <button (click)="editUser(u.id)">Edit</button>
           <button (click)="deleteUser(u.id)">Delete</button>

@@ -24,7 +24,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     { path: '/products', label: 'Products' },
     { path: '/purchases', label: 'Purchases' },
     { path: '/orders', label: 'Orders' },
-    { path: '/inventory', label: 'Inventory' },
+    { path: '/inventory', label: 'Stocks' },
     { path: '/reports', label: 'Reports' }
   ];
 

@@ -3,6 +3,7 @@ package com.zemera.inventory.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+
 public class Purchase {
 
     private Long id;
@@ -16,6 +17,7 @@ public class Purchase {
     private Long approvedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long branchId;
 
     // No-args constructor
     public Purchase() {}
@@ -23,7 +25,7 @@ public class Purchase {
     // Full constructor
     public Purchase(Long id, Long productId, Integer quantity, Double unitPrice, Double totalCost,
                     LocalDate purchaseDate, String productName, String status, Long approvedBy,
-                    LocalDateTime createdAt, LocalDateTime updatedAt) {
+                    LocalDateTime createdAt, LocalDateTime updatedAt, Long branchId) {
         this.id = id;
         this.productId = productId;
         this.quantity = quantity;
@@ -35,6 +37,7 @@ public class Purchase {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.productName = productName;
+        this.branchId = branchId;
     }
 
     // Getters and Setters
@@ -43,6 +46,11 @@ public class Purchase {
 
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
+
+
+    public Long getBranchId() {return branchId;}
+
+    public void setBranchId(Long branchId) {this.branchId = branchId;}
 
     public String getProductName() {
     return productName;

@@ -58,6 +58,18 @@
     <!-- PURCHASE HISTORY TABLE -->
     <div class="history-card">
       <h3>Purchase History</h3>
+      <div *ngIf="isSuperManager" class="filter-card">
+  <label>
+    Select Branch
+    <select [(ngModel)]="selectedBranchId" (change)="onBranchChange()">
+      <option [ngValue]="null">-- Select Branch --</option>
+      <option *ngFor="let b of branches" [ngValue]="b.id">
+        {{ b.name }}
+      </option>
+    </select>
+  </label>
+</div>
+
       <table>
         <thead>
           <tr>

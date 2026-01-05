@@ -5,26 +5,27 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 
-public class AuthHandler {
+public class UserAuthHandler {
 
     private final AuthService authService;
 
-    public AuthHandler(AuthService authService) {
+    public UserAuthHandler(AuthService authService) {
         this.authService = authService;
     }
 
     public void loginUser(RoutingContext ctx) {
-        JsonObject body = ctx.getBodyAsJson();
-        if (body == null) {
-            ctx.response().setStatusCode(400).end("Invalid JSON body");
-            return;
-        }
-        authService.login(body.getString("username"), body.getString("password"))
-                .onSuccess(user -> ctx.response()
-                        .putHeader("Content-Type", "application/json")
-                        .end(user.encode()))
-                .onFailure(err -> ctx.response().setStatusCode(401).end(err.getMessage()));
+    JsonObject body = ctx.getBodyAsJson();
+    if (body == null) {
+        ctx.response().setStatusCode(400).end("Invalid JSON body");
+        return;
     }
+    authService.login(body.getString("username"), body.getString("password"))
+            .onSuccess(user -> ctx.response()
+    .putHeader("Content-Type", "application/json")
+    .end(user.encodePrettily()))
+
+            .onFailure(err -> ctx.response().setStatusCode(401).end(err.getMessage()));
+}
 
     public void registerUser(RoutingContext ctx) {
         JsonObject body = ctx.getBodyAsJson();

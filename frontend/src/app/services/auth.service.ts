@@ -24,15 +24,27 @@ export class AuthService {
   // AUTH ACTIONS
   // ======================
 
- login(username: string, password: string): Observable<AuthModel> {
-  return this.http.post<AuthModel>(`${this.API_URL}/login`, { username, password })
+ login(username: string, password: string) {
+  return this.http.post<any>(`${this.API_URL}/login`, { username, password })
     .pipe(
-      tap(auth => {
+      tap(res => {
+        // Map snake_case from backend → camelCase frontend
+        const auth = {
+          id: res.id,
+          username: res.username,
+          role: res.role,
+          branchName: res.branch_name,
+          branchId: res.branch_id,
+          token: res.token
+        };
+
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(auth));
         this.authSubject.next(auth);
       })
     );
 }
+
+
 
 
 

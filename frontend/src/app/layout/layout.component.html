@@ -18,14 +18,14 @@
     </div>
 
     <div class="user">
-      <div class="avatar">{{ auth.getUserInitials() }}</div>
-      <div>
+      
+      <div class="user-info">
+        <div class="avatar">{{ auth.getUserInitials() }}</div>
         <p class="user-name">{{ auth.getUserName() }}</p>
-        <span class="user-role">{{ auth.getUserRole() }}</span>
-        <li>
-      <button (click)="logout()">Logout</button>
-    </li>
+        <!-- <span class="user-role">{{ auth.getUserRole() }}</span> -->
+
       </div>
+      <button class="link-btn" (click)="logout()">Logout</button>
       
     </div>
       

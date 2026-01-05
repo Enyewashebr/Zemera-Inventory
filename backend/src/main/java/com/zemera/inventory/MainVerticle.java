@@ -3,7 +3,7 @@ package com.zemera.inventory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.zemera.inventory.config.DatabaseConfig;
-import com.zemera.inventory.handler.AuthHandler;
+import com.zemera.inventory.handler.UserAuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
 import com.zemera.inventory.handler.BranchHandler;
 import com.zemera.inventory.handler.PurchaseHandler;
@@ -15,13 +15,18 @@ import com.zemera.inventory.service.AuthService;
 import com.zemera.inventory.service.ProductService;
 import com.zemera.inventory.service.PurchaseService;
 import com.zemera.inventory.util.JwtUtil;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.sqlclient.Pool;
 
 public class MainVerticle extends AbstractVerticle {
@@ -35,6 +40,22 @@ public class MainVerticle extends AbstractVerticle {
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         Router router = Router.router(vertx);
+
+        // JWT Auth provider setup
+     /* ---------------- JWT CONFIG (CRITICAL FIX) ---------------- */
+    JWTAuth jwtAuth = JWTAuth.create(vertx,
+      new JWTAuthOptions()
+        .addJwk(new JsonObject()
+          .put("kty", "oct")
+          .put("alg", "HS256")
+          .put("k", "my_super_secret_key_123456") // move to env later
+        )
+    );
+
+JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
+
+
+
 
         // ✅ CORS configuration
         router.route().handler(
@@ -74,10 +95,11 @@ public class MainVerticle extends AbstractVerticle {
         ProductHandler productHandler = new ProductHandler(productService);
 
         // Auth
-        AuthRepository authRepo = new AuthRepository(client);
-        JwtUtil jwtUtil = new JwtUtil();
-        AuthService authService = new AuthService(authRepo, jwtUtil);
-        AuthHandler authHandler = new AuthHandler(authService);
+       AuthRepository authRepo = new AuthRepository(client);
+JwtUtil jwtUtil = new JwtUtil();
+AuthService authService = new AuthService(authRepo, jwtUtil);
+UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
+
         
 
     
@@ -105,18 +127,28 @@ public class MainVerticle extends AbstractVerticle {
         router.put("/api/products/:id").handler(productHandler::updateProduct);
 
         // user auth routes
-        router.post("/api/auth/login").handler(authHandler::loginUser);
-        router.post("/api/create-user").handler(authHandler::registerUser);
-        router.get("/api/users").handler(authHandler::getAllUsers);
-        router.put("/api/users/:id").handler(authHandler::updateUser);
-        router.delete("/api/users/:id").handler(authHandler::deleteUser);
+        router.post("/api/auth/login").handler(userAuthHandler::loginUser);
+        router.post("/api/create-user").handler(userAuthHandler::registerUser);
+        router.get("/api/users").handler(userAuthHandler::getAllUsers);
+        router.put("/api/users/:id").handler(userAuthHandler::updateUser);
+        router.delete("/api/users/:id").handler(userAuthHandler::deleteUser);
 
         // purchase routes
-        router.post("/api/purchase/create").handler(purchaseHandler::createPurchase);
+        router.post("/api/purchase/create").handler(jwtAuthHandler).handler(purchaseHandler::createPurchase);
+
+        // router.post("/api/purchase/create").handler(purchaseHandler::createPurchase);
         router.get("/api/purchase/getAll").handler(purchaseHandler::getAllPurchases);
         router.get("/api/purchase/getById/:id").handler(purchaseHandler::getPurchaseById);
         router.put("/api/purchase/update/:id").handler(purchaseHandler::updatePurchase);
         router.delete("/api/purchase/delete/:id").handler(purchaseHandler::deletePurchase);
+        // router.get("/api/purchase/my").handler(JWTAuthHandler).handler(purchaseHandler::getMyPurchases);
+        // router.get("/api/purchase/my").handler(authMiddleware).handler(purchaseHandler::getMyPurchases);
+       router.get("/api/purchase/my").handler(jwtAuthHandler).handler(purchaseHandler::getMyPurchases);
+
+
+
+
+
          router.get("/api/purchase/branch/:branchId").handler(purchaseHandler::getPurchasesByBranch);
 
         vertx.createHttpServer()

@@ -24,9 +24,9 @@ public class PurchaseRepository {
 
     String sql = """
         INSERT INTO purchase
-        (product_id, quantity, unit_price, purchase_date, status, approved_by)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *
+        (product_id, quantity, unit_price, total_cost, purchase_date, status, approved_by, branch_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
         """;
 
     return client
@@ -35,14 +35,15 @@ public class PurchaseRepository {
             p.getProductId(),
             p.getQuantity(),
             p.getUnitPrice(),
+            p.getTotalCost(),
             p.getPurchaseDate(),
             p.getStatus(),
-            p.getApprovedBy()
+            p.getApprovedBy(),
+            p.getBranchId()   // ✅ important
         ))
         .compose(rs -> {
             Long purchaseId = rs.iterator().next().getLong("id");
 
-            // 🔁 Fetch purchase with product name
             String fetchSql = """
                 SELECT
                     p.id,
@@ -54,6 +55,7 @@ public class PurchaseRepository {
                     p.purchase_date,
                     p.status,
                     p.approved_by,
+                    p.branch_id,
                     p.created_at,
                     p.updated_at
                 FROM purchase p
@@ -152,6 +154,7 @@ public Future<List<Purchase>> getByBranchId(Long branchId) {
             p.purchase_date,
             p.status,
             p.approved_by,
+            p.branch_id AS branch_id,
             p.created_at,
             p.updated_at
         FROM purchase p
@@ -234,6 +237,7 @@ public Future<List<Purchase>> getByBranchId(Long branchId) {
     p.setTotalCost(row.getDouble("total_cost"));
     p.setPurchaseDate(row.getLocalDate("purchase_date"));
     p.setStatus(row.getString("status"));
+    p.setBranchId(row.getLong("branch_id"));
     p.setApprovedBy(row.getLong("approved_by"));
     p.setCreatedAt(row.getLocalDateTime("created_at"));
     p.setUpdatedAt(row.getLocalDateTime("updated_at"));
