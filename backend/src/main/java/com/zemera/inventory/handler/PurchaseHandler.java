@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Tuple;
 
+import java.time.LocalDate;
+
 public class PurchaseHandler {
 
     private final PurchaseService purchaseService;
@@ -27,31 +29,50 @@ public class PurchaseHandler {
     Integer branchId = jwt.getInteger("branchId");
     Long userId = jwt.getLong("userId");
 
-    Purchase p = body.mapTo(Purchase.class);
-    p.setBranchId(branchId);
-    p.setStatus("PENDING");
-    p.setApprovedBy(null);
+    try {
+        // Manually create Purchase object to handle date conversion
+        Purchase p = new Purchase();
+        p.setProductId(body.getLong("productId"));
+        p.setQuantity(body.getInteger("quantity"));
+        p.setUnitPrice(body.getDouble("unitPrice"));
+        p.setTotalCost(body.getDouble("totalCost"));
 
-    purchaseService.createPurchase(p)
-        .onSuccess(res -> ctx.json(res))
-        .onFailure(err ->
-            ctx.response().setStatusCode(400).end(err.getMessage())
-        );
+        // Handle date conversion
+        String dateStr = body.getString("purchaseDate");
+        if (dateStr != null) {
+            p.setPurchaseDate(java.time.LocalDate.parse(dateStr));
+        }
+
+        p.setBranchId(branchId);
+        p.setStatus("PENDING");
+        p.setApprovedBy(null);
+
+        purchaseService.createPurchase(p)
+            .onSuccess(res -> ctx.json(res))
+            .onFailure(err ->
+                ctx.response().setStatusCode(400).end("Purchase creation failed: " + err.getMessage())
+            );
+    } catch (Exception e) {
+        ctx.response().setStatusCode(400).end("Invalid request data: " + e.getMessage());
+    }
 }
 
 
 
 
     public void getAllPurchases(RoutingContext ctx) {
-        purchaseService.getAllPurchases().onComplete(ar -> {
-            if (ar.succeeded()) {
+        System.out.println("Getting all purchases...");
+        purchaseService.getAllPurchases()
+            .onSuccess(list -> {
+                System.out.println("Found " + list.size() + " total purchases");
                 ctx.response()
                    .putHeader("Content-Type", "application/json")
-                   .end(Json.encodePrettily(ar.result()));
-            } else {
-                ctx.response().setStatusCode(500).end(ar.cause().getMessage());
-            }
-        });
+                   .end(Json.encodePrettily(list));
+            })
+            .onFailure(err -> {
+                System.err.println("Error getting all purchases: " + err.getMessage());
+                ctx.response().setStatusCode(500).end(err.getMessage());
+            });
     }
 
     public void getPurchaseById(RoutingContext ctx) {
@@ -74,13 +95,18 @@ public class PurchaseHandler {
 
     Integer branchId = user.getInteger("branchId");
 
+    System.out.println("Getting purchases for branchId: " + branchId);
+    System.out.println("User principal: " + user.encode());
+
     purchaseService.getPurchasesByBranch(branchId)
         .onSuccess(list -> {
+            System.out.println("Found " + list.size() + " purchases");
             ctx.response()
                .putHeader("Content-Type", "application/json")
                .end(Json.encodePrettily(list));
         })
         .onFailure(err -> {
+            System.err.println("Error getting purchases: " + err.getMessage());
             ctx.response()
                .setStatusCode(500)
                .end(err.getMessage());

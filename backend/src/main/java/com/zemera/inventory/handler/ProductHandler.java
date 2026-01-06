@@ -15,49 +15,38 @@ public class ProductHandler {
 
     // POST /api/products
     public void createProduct(RoutingContext ctx) {
+        JsonObject body = ctx.getBodyAsJson();
 
-        productService.createProduct(ctx.getBodyAsJson(), ar -> {
-            if (ar.succeeded()) {
-                ctx.response()
-                    .setStatusCode(201)
-                    .putHeader("Content-Type", "application/json")
-                    .end(ar.result().encode());
-            } else {
-                ctx.response()
-                    .setStatusCode(500)
-                    .end(ar.cause().getMessage());
-            }
-        });
+        productService.createProduct(body)
+            .onSuccess(product -> ctx.response()
+                .setStatusCode(201)
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(product)))
+            .onFailure(err -> ctx.response()
+                .setStatusCode(500)
+                .end(err.getMessage()));
     }
 
     // update product
     public void updateProduct(RoutingContext ctx) {
-    int id = Integer.parseInt(ctx.pathParam("id"));
-    JsonObject body = ctx.getBodyAsJson();
+        int id = Integer.parseInt(ctx.pathParam("id"));
+        JsonObject body = ctx.getBodyAsJson();
 
-    productService.updateProduct(id, body)
-        .onSuccess(product -> ctx.json(product))
-        .onFailure(err -> {
-            ctx.response()
+        productService.updateProduct(id, body)
+            .onSuccess(product -> ctx.json(product))
+            .onFailure(err -> ctx.response()
                 .setStatusCode(500)
-                .end(err.getMessage());
-        });
-}
-
+                .end(err.getMessage()));
+    }
 
     // GET /api/products
     public void getAllProducts(RoutingContext ctx) {
-
-        productService.getAllProducts(ar -> {
-            if (ar.succeeded()) {
-                ctx.response()
-                    .putHeader("Content-Type", "application/json")
-                    .end(Json.encodePrettily(ar.result()));
-            } else {
-                ctx.response()
-                    .setStatusCode(500)
-                    .end(ar.cause().getMessage());
-            }
-        });
+        productService.getAllProducts()
+            .onSuccess(products -> ctx.response()
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(products)))
+            .onFailure(err -> ctx.response()
+                .setStatusCode(500)
+                .end(err.getMessage()));
     }
 }

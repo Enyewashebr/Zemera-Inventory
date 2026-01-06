@@ -17,6 +17,8 @@ import com.zemera.inventory.service.PurchaseService;
 import com.zemera.inventory.util.JwtUtil;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -28,6 +30,10 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.sqlclient.Pool;
+import io.vertx.sqlclient.Tuple;
+import org.mindrot.jbcrypt.BCrypt;
+import java.util.Base64;
+
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -43,16 +49,23 @@ public class MainVerticle extends AbstractVerticle {
 
         // JWT Auth provider setup
      /* ---------------- JWT CONFIG (CRITICAL FIX) ---------------- */
-    JWTAuth jwtAuth = JWTAuth.create(vertx,
-      new JWTAuthOptions()
+ // Base64-encode the secret for JWK (must match JwtUtil)
+String encodedSecret = Base64.getEncoder()
+                             .encodeToString("my_super_secret_key_123456".getBytes());
+
+JWTAuth jwtAuth = JWTAuth.create(vertx,
+    new JWTAuthOptions()
         .addJwk(new JsonObject()
-          .put("kty", "oct")
-          .put("alg", "HS256")
-          .put("k", "my_super_secret_key_123456") // move to env later
+            .put("kty", "oct")       // symmetric key
+            .put("alg", "HS256")     // must match Jwts signing
+            .put("k", encodedSecret) // Base64-encoded
         )
-    );
+);
+
+
 
 JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
+
 
 
 
@@ -81,14 +94,6 @@ JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
 
         Pool client = (Pool) DatabaseConfig.createClient(vertx);
 
-        client.query("SELECT 1").execute(ar -> {
-            if (ar.succeeded()) {
-                System.out.println("✅ PostgreSQL connection successful!");
-            } else {
-                System.out.println("❌ PostgreSQL connection failed: " + ar.cause().getMessage());
-            }
-        });
-
         // Product
         ProductRepository productRepo = new ProductRepository(client);
         ProductService productService = new ProductService(productRepo);
@@ -108,7 +113,7 @@ UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
 
         // Purchase
         PurchaseRepository purchaseRepo = new PurchaseRepository(client);
-        PurchaseService purchaseService = new PurchaseService(purchaseRepo);
+        PurchaseService purchaseService = new PurchaseService(purchaseRepo, productRepo);
         PurchaseHandler purchaseHandler = new PurchaseHandler(purchaseService);
 
         // branch routes
@@ -161,10 +166,101 @@ UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
             .listen(8080, http -> {
                 if (http.succeeded()) {
                     System.out.println("✅ HTTP server started on port 8080");
-                    startPromise.complete();
+
+                    // Create default data after server starts
+                    createDefaultData(client)
+                        .onComplete(branchResult -> {
+                            createDefaultProducts(client)
+                                .onComplete(productResult -> {
+                                    if (branchResult.succeeded() && productResult.succeeded()) {
+                                        System.out.println("✅ Default data created successfully");
+                                    } else {
+                                        System.out.println("⚠️  Default data creation completed with some issues");
+                                    }
+                                    startPromise.complete();
+                                });
+                        });
                 } else {
                     startPromise.fail(http.cause());
                 }
             });
+    }
+
+    private Future<Void> createDefaultData(Pool client) {
+        return client.preparedQuery("INSERT INTO branches (branch_name, phone) VALUES ($1, $2) ON CONFLICT (branch_name) DO NOTHING")
+            .execute(Tuple.of("Test Branch", "123-456-7890"))
+            .compose(branchResult -> {
+                System.out.println("✅ Default branch created or already exists");
+                return client.preparedQuery("SELECT id FROM branches WHERE branch_name = $1")
+                    .execute(Tuple.of("Test Branch"));
+            })
+            .compose(idResult -> {
+                if (idResult.size() > 0) {
+                    Integer branchId = idResult.iterator().next().getInteger("id");
+
+                    // Hash password
+                    String hashedPassword = BCrypt.hashpw("password123", BCrypt.gensalt());
+
+                    // Create default user with all required fields
+                    String sql = """
+                        INSERT INTO users(
+                            full_name, username, password, email, phone,
+                            role, branch_name, branch_id, created_at
+                        )
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
+                        ON CONFLICT (username) DO NOTHING
+                    """;
+
+                    return client.preparedQuery(sql)
+                        .execute(Tuple.of(
+                            "Test User",           // full_name
+                            "testuser",            // username
+                            hashedPassword,        // password
+                            "test@example.com",    // email
+                            "123-456-7890",        // phone
+                            "BRANCH_MANAGER",      // role
+                            "Test Branch",         // branch_name
+                            branchId               // branch_id
+                        ))
+                        .map(userResult -> {
+                            System.out.println("✅ Default user created: testuser/password123");
+                            return null;
+                        });
+                } else {
+                    return Future.failedFuture("Could not find created branch");
+                }
+            });
+    }
+
+    private Future<Void> createDefaultProducts(Pool client) {
+        // Create some default products for testing
+        String[] products = {
+            "Laptop", "Mouse", "Keyboard", "Monitor", "Printer",
+            "Scanner", "Webcam", "Headphones", "Speakers", "Microphone",
+            "USB Drive", "External Hard Drive", "Router", "Switch", "Cable"
+        };
+
+        Future<Void> result = Future.succeededFuture();
+
+        for (int i = 0; i < products.length; i++) {
+            final String productName = products[i];
+            final int productId = i + 1;
+            final int index = i;
+
+            result = result.compose(v ->
+                client.preparedQuery("INSERT INTO products (id, name, unit, stock, buying_price, selling_price, sellable) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING")
+                    .execute(Tuple.of(productId, productName, "piece", 100.0, 50.0 + index * 10, 75.0 + index * 15, true))
+                    .compose(ar -> {
+                        System.out.println("✅ Default product created: " + productName + " (ID: " + productId + ")");
+                        return Future.succeededFuture((Void) null);
+                    })
+                    .recover(err -> {
+                        System.out.println("⚠️  Product " + productName + " may already exist or failed: " + err.getMessage());
+                        return Future.succeededFuture((Void) null);
+                    })
+            );
+        }
+
+        return result;
     }
 }

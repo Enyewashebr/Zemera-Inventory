@@ -84,7 +84,7 @@
             <td>{{ p.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
             <td>{{ p.totalCost | currency:'ETB':'symbol':'1.2-2' }}</td>
             <td>{{ p.status }}</td>
-            <td>{{ p.approvedBy || '—' }}</td>
+            <td>{{ p.approvedByName || '—' }}</td>
             <td *ngIf="isSuperManager">
               <button *ngIf="p.status === 'PENDING'" class="primary" (click)="approvePurchase(p.id)">
                 Approve

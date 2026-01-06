@@ -1,9 +1,8 @@
 package com.zemera.inventory.service;
 
+import com.zemera.inventory.model.Product;
 import com.zemera.inventory.repository.ProductRepository;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
@@ -17,23 +16,34 @@ public class ProductService {
     }
 
     // Create product
-    public void createProduct(
-        JsonObject productData,
-        Handler<AsyncResult<JsonObject>> resultHandler
-    ) {
-        productRepository.createProduct(productData, resultHandler);
+    public Future<Product> createProduct(JsonObject productData) {
+        Product product = productData.mapTo(Product.class);
+        return productRepository.createProduct(product);
     }
 
     // Get all products
-    public void getAllProducts(
-        Handler<AsyncResult<List<JsonObject>>> resultHandler
-    ) {
-        productRepository.getAllProducts(resultHandler);
+    public Future<List<Product>> getAllProducts() {
+        return productRepository.getAllProducts();
     }
 
     // Update product
-    public Future<JsonObject> updateProduct(int id, JsonObject data) {
-    return productRepository.updateProduct(id, data);
-}
+    public Future<Product> updateProduct(int id, JsonObject data) {
+        // For now, keep the old method signature but we can update this later
+        return productRepository.updateProduct(id, data)
+            .map(json -> json.mapTo(Product.class));
+    }
+
+    // Stock management methods
+    public Future<Void> decreaseStock(int productId, int quantity) {
+        return productRepository.decreaseStock(productId, quantity);
+    }
+
+    public Future<Boolean> hasSufficientStock(int productId, int quantity) {
+        return productRepository.hasSufficientStock(productId, quantity);
+    }
+
+    public Future<Product> getProductById(int id) {
+        return productRepository.getProductById(id);
+    }
 
 }

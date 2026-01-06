@@ -3,11 +3,14 @@ package com.zemera.inventory.util;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
+import java.util.Base64;
 import java.util.Date;
 
 public class JwtUtil {
 
-    private static final String SECRET = "my_super_secret_key_123456";
+    // Use Base64-encoded secret to match Vert.x JWK configuration
+    private static final String SECRET = Base64.getEncoder()
+            .encodeToString("my_super_secret_key_123456".getBytes());
 
     public String generateToken(Integer userId, String username, String role, String name, Integer branchId) {
         return Jwts.builder()

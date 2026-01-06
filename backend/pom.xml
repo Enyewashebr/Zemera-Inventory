@@ -66,25 +66,12 @@
     <version>2.15.2</version> <!-- or latest stable -->
 </dependency>
 
-   <!-- Vert.x Core -->
-    <dependency>
-        <groupId>io.vertx</groupId>
-        <artifactId>vertx-core</artifactId>
-        <version>4.5.7</version>
-    </dependency>
 
-    <!-- Vert.x Web -->
-    <dependency>
-        <groupId>io.vertx</groupId>
-        <artifactId>vertx-web</artifactId>
-        <version>4.5.7</version>
-    </dependency>
-
-    <!-- Vert.x JWT Auth (THIS IS MISSING) -->
+    <!-- Vert.x JWT Auth -->
     <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-auth-jwt</artifactId>
-        <version>4.5.7</version>
+        <version>${vertx.version}</version>
     </dependency>
 <dependency>
     <groupId>io.jsonwebtoken</groupId>
@@ -132,6 +119,15 @@
       </executions>
       <configuration>
         <verticle>com.zemera.inventory.MainVerticle</verticle>
+        <jvmArgs>
+          <jvmArg>-Xms64m</jvmArg>
+          <jvmArg>-Xmx128m</jvmArg>
+          <jvmArg>-XX:+UseSerialGC</jvmArg>
+          <jvmArg>-XX:MaxMetaspaceSize=64m</jvmArg>
+          <jvmArg>-XX:ReservedCodeCacheSize=32m</jvmArg>
+          <jvmArg>-XX:+UseCompressedClassPointers</jvmArg>
+          <jvmArg>-XX:+UseCompressedOops</jvmArg>
+        </jvmArgs>
       </configuration>
     </plugin>
 

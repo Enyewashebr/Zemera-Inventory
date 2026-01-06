@@ -53,12 +53,19 @@ export class AuthService {
     this.authSubject.next(null);
   }
 
+  checkTokenAndLogoutIfExpired(): void {
+    if (this.isTokenExpired()) {
+      console.log('Token expired, logging out...');
+      this.logout();
+    }
+  }
+
   // ======================
   // AUTH STATE
   // ======================
 
   isLoggedIn(): boolean {
-    return !!this.authSubject.value?.token;
+    return !!this.authSubject.value?.token && !this.isTokenExpired();
   }
 
   isAdmin(): boolean {
@@ -94,6 +101,19 @@ export class AuthService {
 
   getToken(): string | null {
     return this.authSubject.value?.token ?? null;
+  }
+
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000; // Convert to milliseconds
+      return Date.now() > exp;
+    } catch (e) {
+      return true; // If we can't parse the token, consider it expired
+    }
   }
 
   getname(): string | null {

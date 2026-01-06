@@ -22,7 +22,9 @@ interface Purchase {
   unitPrice: number;
   totalCost: number;
   status: 'PENDING' | 'APPROVED' | 'DECLINED';
-  approvedBy?: string;
+  approvedBy?: number;
+  approvedByName?: string;
+  branchId?: number;
 }
 
 @Component({
@@ -67,16 +69,16 @@ selectedBranchId?: number;
   this.isSuperManager = role === 'SUPER_MANAGER';
 
   this.loadProducts();
-  this.loadMyPurchases();
+  // this.loadMyPurchases();
 
 
-  // if (this.isBranchManager) {
-  //   this.loadMyPurchases();
-  // }
+  if (this.isBranchManager) {
+    this.loadMyPurchases();
+  }
 
-  // if (this.isSuperManager) {
-  //   this.loadBranches();
-  // }
+  if (this.isSuperManager) {
+    this.loadBranches();
+  }
 }
 
 
@@ -84,26 +86,45 @@ selectedBranchId?: number;
     this.http.get<Product[]>('http://localhost:8080/api/products')
       .subscribe(data => this.products = data);
   }
-loadMyPurchases() {
-  // const token = localStorage.getItem('token');
 
-  // if (!token) {
-  //   console.error('JWT token missing');
-  //   return;
-  // }
+
+loadMyPurchases() {
+  // Check if token is expired before making the request
+  if (this.authService.isTokenExpired()) {
+    console.error('JWT token expired');
+    this.authService.logout();
+    // You might want to redirect to login page here
+    return;
+  }
+
+  const token = this.authService.getToken();
+
+  if (!token) {
+    console.error('JWT token missing');
+    return;
+  }
 
   this.http.get<Purchase[]>(
     'http://localhost:8080/api/purchase/my',
-    // {
-    //   headers: {
-    //     Authorization: `Bearer ${token}`
-    //   }
-    // }
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
   ).subscribe({
     next: data => this.purchases = data,
-    error: err => console.error(err)
+    error: err => {
+      if (err.status === 401) {
+        console.error('Unauthorized - token may be invalid');
+        this.authService.logout();
+        // You might want to redirect to login page here
+      } else {
+        console.error(err);
+      }
+    }
   });
 }
+
 
 
   loadPurchases() {
@@ -139,6 +160,13 @@ loadMyPurchases() {
   savePurchase() {
   if (!this.validateForm()) return;
 
+  // Check if token is expired before making the request
+  if (this.authService.isTokenExpired()) {
+    console.error('JWT token expired');
+    this.authService.logout();
+    return;
+  }
+
   const payload = {
     productId: Number(this.form.productId),
     quantity: Number(this.form.quantity),
@@ -148,9 +176,9 @@ loadMyPurchases() {
     status: 'PENDING'
   };
 
-  const token = localStorage.getItem('token'); // ✅ get JWT from local storage
+  const token = this.authService.getToken(); // ✅ get JWT from AuthService
   if (!token) {
-    console.error('No JWT found in localStorage!');
+    console.error('No JWT found!');
     return;
   }
 
@@ -165,12 +193,22 @@ loadMyPurchases() {
     next: () => {
       this.successMessage = 'Purchase saved (Pending approval)';
       this.clearForm();
-      this.loadPurchases();
+      // Load appropriate purchases based on user role
+      if (this.isBranchManager) {
+        this.loadMyPurchases();
+      } else if (this.isSuperManager) {
+        this.loadPurchases();
+      }
       this.isSaving = false;
       setTimeout(() => this.successMessage = '', 3000);
     },
     error: err => {
-      console.error('Error saving purchase:', err); // now will see 401 or 400 clearly
+      if (err.status === 401) {
+        console.error('Unauthorized - token may be invalid');
+        this.authService.logout();
+      } else {
+        console.error('Error saving purchase:', err);
+      }
       this.isSaving = false;
     }
   });
@@ -199,22 +237,54 @@ loadMyPurchases() {
 
 
  approvePurchase(id: number) {
-  const token = localStorage.getItem('token');
+  if (this.authService.isTokenExpired()) {
+    console.error('JWT token expired');
+    this.authService.logout();
+    return;
+  }
+
+  const token = this.authService.getToken();
+  if (!token) return;
+
   this.http.put(
     `http://localhost:8080/api/purchase/${id}/approve`,
     {},
     { headers: { Authorization: `Bearer ${token}` } }
-  ).subscribe(() => this.onBranchChange());
+  ).subscribe({
+    next: () => this.onBranchChange(),
+    error: err => {
+      if (err.status === 401) {
+        console.error('Unauthorized - token may be invalid');
+        this.authService.logout();
+      }
+    }
+  });
 }
 
 
-  declinePurchase(id: number) {
-  const token = localStorage.getItem('token');
+ declinePurchase(id: number) {
+  if (this.authService.isTokenExpired()) {
+    console.error('JWT token expired');
+    this.authService.logout();
+    return;
+  }
+
+  const token = this.authService.getToken();
+  if (!token) return;
+
   this.http.put(
-    `http://localhost:8080/api/purchase/${id}/approve`,
-    {},
+    `http://localhost:8080/api/purchase/${id}/decline`,
+    { comment: 'Declined by super manager' },
     { headers: { Authorization: `Bearer ${token}` } }
-  ).subscribe(() => this.onBranchChange());
+  ).subscribe({
+    next: () => this.onBranchChange(),
+    error: err => {
+      if (err.status === 401) {
+        console.error('Unauthorized - token may be invalid');
+        this.authService.logout();
+      }
+    }
+  });
 }
 
   

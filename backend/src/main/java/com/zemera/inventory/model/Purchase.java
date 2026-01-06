@@ -15,6 +15,7 @@ public class Purchase {
      private String productName;
     private String status;
     private Long approvedBy;
+    private String approvedByName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer branchId;
@@ -77,6 +78,9 @@ public void setProductName(String productName) {
 
     public Long getApprovedBy() { return approvedBy; }
     public void setApprovedBy(Long approvedBy) { this.approvedBy = approvedBy; }
+
+    public String getApprovedByName() { return approvedByName; }
+    public void setApprovedByName(String approvedByName) { this.approvedByName = approvedByName; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

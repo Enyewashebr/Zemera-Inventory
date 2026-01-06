@@ -24,8 +24,8 @@ public class PurchaseRepository {
 
     String sql = """
         INSERT INTO purchase
-        (product_id, quantity, unit_price, total_cost, purchase_date, status, approved_by, branch_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (product_id, quantity, unit_price, purchase_date, status, approved_by, branch_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
         """;
 
@@ -35,7 +35,6 @@ public class PurchaseRepository {
             p.getProductId(),
             p.getQuantity(),
             p.getUnitPrice(),
-            p.getTotalCost(),
             p.getPurchaseDate(),
             p.getStatus(),
             p.getApprovedBy(),
@@ -55,11 +54,13 @@ public class PurchaseRepository {
                     p.purchase_date,
                     p.status,
                     p.approved_by,
+                    u.username AS approved_by_name,
                     p.branch_id,
                     p.created_at,
                     p.updated_at
                 FROM purchase p
                 JOIN products pr ON pr.id = p.product_id
+                LEFT JOIN users u ON u.id = p.approved_by
                 WHERE p.id = $1
             """;
 
@@ -87,10 +88,13 @@ public class PurchaseRepository {
             p.purchase_date,
             p.status,
             p.approved_by,
+            u.username AS approved_by_name,
+            p.branch_id,
             p.created_at,
             p.updated_at
         FROM purchase p
         JOIN products pr ON pr.id = p.product_id
+        LEFT JOIN users u ON u.id = p.approved_by
         ORDER BY p.created_at DESC
     """;
 
@@ -120,10 +124,13 @@ public Future<List<Purchase>> getByBranchId(Integer branchId) {
             p.purchase_date,
             p.status,
             p.approved_by,
+            u.username AS approved_by_name,
+            p.branch_id,
             p.created_at,
             p.updated_at
         FROM purchase p
         JOIN products pr ON pr.id = p.product_id
+        LEFT JOIN users u ON u.id = p.approved_by
         WHERE p.branch_id = $1
         ORDER BY p.created_at DESC
     """;
@@ -155,11 +162,13 @@ public Future<List<Purchase>> getByBranchId(Integer branchId) {
             p.purchase_date,
             p.status,
             p.approved_by,
+            u.username AS approved_by_name,
             p.branch_id AS branch_id,
             p.created_at,
             p.updated_at
         FROM purchase p
         JOIN products pr ON pr.id = p.product_id
+        LEFT JOIN users u ON u.id = p.approved_by
         WHERE p.id = $1
     """;
 
@@ -185,7 +194,7 @@ public Future<List<Purchase>> getByBranchId(Integer branchId) {
             approved_by = $6,
             updated_at = now()
         WHERE id = $7
-        RETURNING *
+        RETURNING id
         """;
 
     return client
@@ -199,7 +208,7 @@ public Future<List<Purchase>> getByBranchId(Integer branchId) {
             p.getApprovedBy(),
             id
         ))
-        .map(rs -> mapRowToPurchase(rs.iterator().next()));
+        .compose(rs -> getById(id));
 }
 
 
@@ -272,6 +281,7 @@ public Future<Void> decline(Long id, Long approvedBy, String comment) {
     p.setStatus(row.getString("status"));
     p.setBranchId(row.getInteger("branch_id"));
     p.setApprovedBy(row.getLong("approved_by"));
+    p.setApprovedByName(row.getString("approved_by_name"));
     p.setCreatedAt(row.getLocalDateTime("created_at"));
     p.setUpdatedAt(row.getLocalDateTime("updated_at"));
 
