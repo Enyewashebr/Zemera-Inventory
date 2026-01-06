@@ -7,6 +7,19 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.Tuple;
 
 public class AuthRepository {
+    private JsonObject mapUser(Row row) {
+    return new JsonObject()
+        .put("id", row.getLong("id"))
+        .put("fullName", row.getString("full_name"))
+        .put("username", row.getString("username"))
+        .put("email", row.getString("email"))
+        .put("phone", row.getString("phone"))
+        .put("role", row.getString("role"))
+        .put("branchName", row.getString("branch_name"))
+        .put("branchId", row.getLong("branch_id"))
+        .put("createdAt", row.getLocalDateTime("created_at").toString());
+}
+
 
     private final Pool client;
 
@@ -55,9 +68,42 @@ public class AuthRepository {
     }
 
     // ---------------- Create user ----------------
-   public Future<JsonObject> createUser(JsonObject data) {
+  public Future<JsonObject> createUser(JsonObject data) {
 
+    String role = data.getString("role");
     Integer branchId = data.getInteger("branchId");
+
+    // SUPER MANAGER → no branch
+    if ("SUPER_MANAGER".equals(role)) {
+
+        String sql = """
+            INSERT INTO users(
+                full_name, username, password, email, phone,
+                role, branch_name, branch_id, created_at
+            )
+            VALUES ($1,$2,$3,$4,$5,$6,'ALL',NULL,NOW())
+            RETURNING id, full_name, username, email, phone,
+                      role, branch_name, branch_id, created_at
+        """;
+
+        return client.preparedQuery(sql)
+            .execute(Tuple.of(
+                data.getString("fullName"),
+                data.getString("username"),
+                data.getString("password"),
+                data.getString("email"),
+                data.getString("phone"),
+                role
+            ))
+            .map(rows -> mapUser(rows.iterator().next()));
+            
+    }
+    
+
+    // BRANCH MANAGER → must have branch
+    if (branchId == null) {
+        return Future.failedFuture("Branch is required for Branch Manager");
+    }
 
     return client
         .preparedQuery("SELECT branch_name FROM branches WHERE id = $1")
@@ -87,24 +133,12 @@ public class AuthRepository {
                     data.getString("password"),
                     data.getString("email"),
                     data.getString("phone"),
-                    data.getString("role"),
-                    branchName,      // ✅ USE DB VALUE
+                    role,
+                    branchName,
                     branchId
                 ));
         })
-        .map(rows -> {
-            Row row = rows.iterator().next();
-            return new JsonObject()
-                .put("id", row.getLong("id"))
-                .put("fullName", row.getString("full_name"))
-                .put("username", row.getString("username"))
-                .put("email", row.getString("email"))
-                .put("phone", row.getString("phone"))
-                .put("role", row.getString("role"))
-                .put("branchName", row.getString("branch_name"))
-                .put("branchId", row.getLong("branch_id"))
-                .put("createdAt", row.getLocalDateTime("created_at").toString());
-        });
+        .map(rows -> mapUser(rows.iterator().next()));
 }
 
     // ---------------- Update user ----------------

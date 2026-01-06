@@ -67,14 +67,16 @@ selectedBranchId?: number;
   this.isSuperManager = role === 'SUPER_MANAGER';
 
   this.loadProducts();
+  this.loadMyPurchases();
 
-  if (this.isBranchManager) {
-    this.loadMyPurchases();
-  }
 
-  if (this.isSuperManager) {
-    this.loadBranches();
-  }
+  // if (this.isBranchManager) {
+  //   this.loadMyPurchases();
+  // }
+
+  // if (this.isSuperManager) {
+  //   this.loadBranches();
+  // }
 }
 
 
@@ -83,20 +85,20 @@ selectedBranchId?: number;
       .subscribe(data => this.products = data);
   }
 loadMyPurchases() {
-  const token = localStorage.getItem('token');
+  // const token = localStorage.getItem('token');
 
-  if (!token) {
-    console.error('JWT token missing');
-    return;
-  }
+  // if (!token) {
+  //   console.error('JWT token missing');
+  //   return;
+  // }
 
   this.http.get<Purchase[]>(
     'http://localhost:8080/api/purchase/my',
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
+    // {
+    //   headers: {
+    //     Authorization: `Bearer ${token}`
+    //   }
+    // }
   ).subscribe({
     next: data => this.purchases = data,
     error: err => console.error(err)

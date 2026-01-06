@@ -35,13 +35,16 @@
       </select>
     </label>
 
-    <label>
-      Branch
-      <select [(ngModel)]="user.branchId" name="branchId" required>
-        <option [ngValue]="0" disabled>Select branch</option>
-        <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
-      </select>
-    </label>
+    <label *ngIf="user.role === 'BRANCH_MANAGER'">
+  Branch
+  <select [(ngModel)]="user.branchId" name="branchId" required>
+    <option [ngValue]="null" disabled>Select branch</option>
+    <option *ngFor="let b of branches" [ngValue]="b.id">
+      {{ b.name }}
+    </option>
+  </select>
+</label>
+
 
     <button type="submit" [disabled]="loading">{{ loading ? 'Saving...' : 'Create User' }}</button>
     <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>

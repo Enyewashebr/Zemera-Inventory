@@ -144,13 +144,7 @@ UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
         // router.get("/api/purchase/my").handler(JWTAuthHandler).handler(purchaseHandler::getMyPurchases);
         // router.get("/api/purchase/my").handler(authMiddleware).handler(purchaseHandler::getMyPurchases);
     //    router.get("/api/purchase/my").handler(jwtAuthHandler).handler(purchaseHandler::getMyPurchases);
-       router.get("/api/purchase/my")
-  .handler(ctx -> {
-      System.out.println("AUTH HEADER = " + ctx.request().getHeader("Authorization"));
-      ctx.next();
-  })
-  .handler(jwtAuthHandler)
-  .handler(purchaseHandler::getMyPurchases);
+       router.get("/api/purchase/my").handler(jwtAuthHandler).handler(purchaseHandler::getMyPurchases);
 
        router.put("/api/purchase/:id/approve").handler(jwtAuthHandler).handler(purchaseHandler::approve);
         router.put("/api/purchase/:id/decline").handler(jwtAuthHandler).handler(purchaseHandler::decline);

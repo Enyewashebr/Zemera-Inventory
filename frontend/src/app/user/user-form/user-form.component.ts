@@ -42,17 +42,23 @@ export class UserFormComponent implements OnInit {
   }
 
   save() {
-    this.loading = true;
-    this.errorMessage = '';
+  this.loading = true;
+  this.errorMessage = '';
 
-    this.http.post('http://localhost:8080/api/create-user', this.user)
-      .subscribe({
-        next: () => this.router.navigate(['/users']),
-        error: err => {
-          console.error(err);
-          this.errorMessage = err.error || 'Failed to create user';
-          this.loading = false;
-        }
-      });
+  // ✅ IMPORTANT: Super manager should not send branchId
+  if (this.user.role === 'SUPER_MANAGER') {
+    this.user.branchId;   // or: this.user.branchId = null;
   }
+
+  this.http.post('http://localhost:8080/api/create-user', this.user)
+    .subscribe({
+      next: () => this.router.navigate(['/users']),
+      error: err => {
+        console.error(err);
+        this.errorMessage = err.error || 'Failed to create user';
+        this.loading = false;
+      }
+    });
+}
+
 }
