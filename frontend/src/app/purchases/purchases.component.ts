@@ -60,29 +60,49 @@ selectedBranchId?: number;
     private authService: AuthService
   ) {}
 
-  ngOnInit(): void {
-    const role = this.authService.getUserRole();
-    this.isBranchManager = role === 'BRANCH_MANAGER';
-    this.isSuperManager = role === 'SUPER_MANAGER';
+ ngOnInit(): void {
+  const role = this.authService.getUserRole();
 
+  this.isBranchManager = role === 'BRANCH_MANAGER';
+  this.isSuperManager = role === 'SUPER_MANAGER';
 
-    if (this.isSuperManager) {
-      this.loadBranches();
-    }
+  this.loadProducts();
 
-    if (this.isBranchManager) {
-      this.loadPurchases();
-    }
+  if (this.isBranchManager) {
+    this.loadMyPurchases();
+  }
 
-    this.loadProducts();
-    this.loadPurchases();
+  if (this.isSuperManager) {
     this.loadBranches();
   }
+}
+
 
   loadProducts() {
     this.http.get<Product[]>('http://localhost:8080/api/products')
       .subscribe(data => this.products = data);
   }
+loadMyPurchases() {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    console.error('JWT token missing');
+    return;
+  }
+
+  this.http.get<Purchase[]>(
+    'http://localhost:8080/api/purchase/my',
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  ).subscribe({
+    next: data => this.purchases = data,
+    error: err => console.error(err)
+  });
+}
+
 
   loadPurchases() {
     this.http.get<Purchase[]>('http://localhost:8080/api/purchase/getAll')
@@ -168,25 +188,33 @@ selectedBranchId?: number;
   }
 
   onBranchChange() {
-    if (!this.selectedBranchId) {
-      this.purchases = [];
-      return;
-    }
+  if (!this.selectedBranchId) return;
 
-    this.http.get<Purchase[]>(
-      `http://localhost:8080/api/purchase/branch/${this.selectedBranchId}`
-    ).subscribe(data => this.purchases = data);
-  }
+  this.http.get<Purchase[]>(
+    `http://localhost:8080/api/purchase/branch/${this.selectedBranchId}`
+  ).subscribe(data => this.purchases = data);
+}
 
-  approvePurchase(id: number) {
-    this.http.put(`http://localhost:8080/api/purchase/${id}/approve`, {})
-      .subscribe(() => this.onBranchChange());
-  }
+
+ approvePurchase(id: number) {
+  const token = localStorage.getItem('token');
+  this.http.put(
+    `http://localhost:8080/api/purchase/${id}/approve`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  ).subscribe(() => this.onBranchChange());
+}
+
 
   declinePurchase(id: number) {
-    this.http.put(`http://localhost:8080/api/purchase/${id}/decline`, {})
-      .subscribe(() => this.onBranchChange());
-  }
+  const token = localStorage.getItem('token');
+  this.http.put(
+    `http://localhost:8080/api/purchase/${id}/approve`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  ).subscribe(() => this.onBranchChange());
+}
+
   
 
   // approvePurchase(id: number) {

@@ -107,7 +107,7 @@ public class PurchaseRepository {
 }
 
 
-public Future<List<Purchase>> getByBranchId(Long branchId) {
+public Future<List<Purchase>> getByBranchId(Integer branchId) {
 
     String sql = """
         SELECT
@@ -139,6 +139,7 @@ public Future<List<Purchase>> getByBranchId(Long branchId) {
             return list;
         });
 }
+
 
     // Get purchase by ID
    public Future<Purchase> getById(Long id) {
@@ -210,6 +211,38 @@ public Future<List<Purchase>> getByBranchId(Long branchId) {
                 .mapEmpty();
     }
 
+
+    public Future<Void> approve(Long id, Long approvedBy) {
+    String sql = """
+        UPDATE purchase
+        SET status = 'APPROVED',
+            approved_by = $1,
+            updated_at = now()
+        WHERE id = $2
+    """;
+
+    return client
+        .preparedQuery(sql)
+        .execute(Tuple.of(approvedBy, id))
+        .mapEmpty();
+}
+
+public Future<Void> decline(Long id, Long approvedBy, String comment) {
+    String sql = """
+        UPDATE purchase
+        SET status = 'DECLINED',
+            approved_by = $1,
+            approval_comment = $2,
+            updated_at = now()
+        WHERE id = $3
+    """;
+
+    return client
+        .preparedQuery(sql)
+        .execute(Tuple.of(approvedBy, comment, id))
+        .mapEmpty();
+}
+
     // Helper to map Row to Purchase object
     // private Purchase mapRowToPurchase(Row row) {
     //     return new Purchase(
@@ -237,7 +270,7 @@ public Future<List<Purchase>> getByBranchId(Long branchId) {
     p.setTotalCost(row.getDouble("total_cost"));
     p.setPurchaseDate(row.getLocalDate("purchase_date"));
     p.setStatus(row.getString("status"));
-    p.setBranchId(row.getLong("branch_id"));
+    p.setBranchId(row.getInteger("branch_id"));
     p.setApprovedBy(row.getLong("approved_by"));
     p.setCreatedAt(row.getLocalDateTime("created_at"));
     p.setUpdatedAt(row.getLocalDateTime("updated_at"));

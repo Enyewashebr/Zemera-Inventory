@@ -29,10 +29,19 @@ public class PurchaseService {
     public Future<Purchase> updatePurchase(Long id, Purchase p) {
         return repo.update(id, p);
     }
-    public Future<List<Purchase>> getPurchasesByBranch(Long branchId) {
+    public Future<List<Purchase>> getPurchasesByBranch(Integer branchId) {
     return repo.getByBranchId(branchId);
 }
     public Future<Void> deletePurchase(Long id) {
         return repo.delete(id);
     }
+    public Future<Void> approvePurchase(Long id, Long approvedBy) {
+    return repo.approve(id, approvedBy);
 }
+
+public Future<Void> declinePurchase(Long id, Long approvedBy, String comment) {
+    return repo.decline(id, approvedBy, comment);
+}
+
+}
+

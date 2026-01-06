@@ -2,9 +2,12 @@ package com.zemera.inventory.handler;
 
 import com.zemera.inventory.model.Purchase;
 import com.zemera.inventory.service.PurchaseService;
+
+import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.sqlclient.Tuple;
 
 public class PurchaseHandler {
 
@@ -16,31 +19,24 @@ public class PurchaseHandler {
 
 //   POST /api/purchases
 
-   public void createPurchase(RoutingContext ctx) {
-    try {
-        Purchase purchase = ctx.getBodyAsJson().mapTo(Purchase.class);
+  public void createPurchase(RoutingContext ctx) {
 
-        // 🔐 Extract branchId from JWT
-        Long branchId = ctx.user().principal().getLong("branch_id");
+    JsonObject body = ctx.getBodyAsJson();
 
-        System.out.println("Purchase payload: " + ctx.getBodyAsString());
-        System.out.println("Branch ID from JWT: " + branchId);
+    JsonObject jwt = ctx.user().principal();
+    Integer branchId = jwt.getInteger("branchId");
+    Long userId = jwt.getLong("userId");
 
-        purchase.setBranchId(branchId);
+    Purchase p = body.mapTo(Purchase.class);
+    p.setBranchId(branchId);
+    p.setStatus("PENDING");
+    p.setApprovedBy(null);
 
-        purchaseService.createPurchase(purchase)
-            .onSuccess(saved -> ctx.response()
-                .putHeader("Content-Type", "application/json")
-                .end(Json.encode(saved)))
-            .onFailure(err -> {
-                err.printStackTrace();   // 🔥 print real error
-                ctx.fail(err);
-            });
-
-    } catch (Exception e) {
-        e.printStackTrace();  // 🔥 print parsing errors
-        ctx.response().setStatusCode(400).end("Invalid purchase payload");
-    }
+    purchaseService.createPurchase(p)
+        .onSuccess(res -> ctx.json(res))
+        .onFailure(err ->
+            ctx.response().setStatusCode(400).end(err.getMessage())
+        );
 }
 
 
@@ -76,7 +72,7 @@ public class PurchaseHandler {
 
     JsonObject user = ctx.user().principal();
 
-    Long branchId = user.getLong("branchId");
+    Integer branchId = user.getInteger("branchId");
 
     purchaseService.getPurchasesByBranch(branchId)
         .onSuccess(list -> {
@@ -91,6 +87,37 @@ public class PurchaseHandler {
         });
 }
 
+// approval flow can be added later
+public void approve(RoutingContext ctx) {
+
+    Long purchaseId = Long.valueOf(ctx.pathParam("id"));
+
+    JsonObject jwt = ctx.user().principal();
+    Long approvedBy = jwt.getLong("userId");
+
+    purchaseService.approvePurchase(purchaseId, approvedBy)
+        .onSuccess(v -> ctx.response().setStatusCode(204).end())
+        .onFailure(err ->
+            ctx.response().setStatusCode(500).end(err.getMessage())
+        );
+}
+
+public void decline(RoutingContext ctx) {
+
+    Long purchaseId = Long.valueOf(ctx.pathParam("id"));
+
+    JsonObject jwt = ctx.user().principal();
+    Long approvedBy = jwt.getLong("userId");
+
+    JsonObject body = ctx.getBodyAsJson();
+    String comment = body != null ? body.getString("comment") : null;
+
+    purchaseService.declinePurchase(purchaseId, approvedBy, comment)
+        .onSuccess(v -> ctx.response().setStatusCode(204).end())
+        .onFailure(err ->
+            ctx.response().setStatusCode(500).end(err.getMessage())
+        );
+}
 
 
     public void updatePurchase(RoutingContext ctx) {
@@ -108,7 +135,7 @@ public class PurchaseHandler {
     }
 
     public void getPurchasesByBranch(RoutingContext ctx) {
-    Long branchId = Long.valueOf(ctx.pathParam("branchId"));
+    Integer branchId = Integer.valueOf(ctx.pathParam("branchId"));
 
     purchaseService.getPurchasesByBranch(branchId)
         .onComplete(ar -> {

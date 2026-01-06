@@ -17,7 +17,7 @@ public class Purchase {
     private Long approvedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Long branchId;
+    private Integer branchId;
 
     // No-args constructor
     public Purchase() {}
@@ -25,7 +25,7 @@ public class Purchase {
     // Full constructor
     public Purchase(Long id, Long productId, Integer quantity, Double unitPrice, Double totalCost,
                     LocalDate purchaseDate, String productName, String status, Long approvedBy,
-                    LocalDateTime createdAt, LocalDateTime updatedAt, Long branchId) {
+                    LocalDateTime createdAt, LocalDateTime updatedAt, Integer branchId) {
         this.id = id;
         this.productId = productId;
         this.quantity = quantity;
@@ -48,9 +48,9 @@ public class Purchase {
     public void setProductId(Long productId) { this.productId = productId; }
 
 
-    public Long getBranchId() {return branchId;}
+    public Integer getBranchId() {return branchId;}
 
-    public void setBranchId(Long branchId) {this.branchId = branchId;}
+    public void setBranchId(Integer branchId) {this.branchId = branchId;}
 
     public String getProductName() {
     return productName;
