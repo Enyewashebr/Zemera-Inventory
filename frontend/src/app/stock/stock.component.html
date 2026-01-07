@@ -1,0 +1,73 @@
+<section class="inventory">
+  <div class="section-header">
+    <h2>Inventory</h2>
+    <p>Monitor live stock, highlight low items, and search quickly.</p>
+  </div>
+
+  <div class="filters">
+    <label>
+      <span>Search</span>
+      <input
+        type="text"
+        [(ngModel)]="search"
+        placeholder="Search by product or category"
+      />
+    </label>
+    <label>
+      <span>Category</span>
+      <select [(ngModel)]="categoryFilter">
+        <option value="">All categories</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Product name</th>
+          <th>Category</th>
+          <th>Subcategory</th>
+          <th>Current stock</th>
+          <th>Unit</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of filteredRows(); track row.name) {
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.subcategory || '—' }}</td>
+            <td class="numeric">{{ row.stock }}</td>
+            <td>{{ row.unit }}</td>
+            <td>
+              @switch (status(row)) {
+                @case ('normal') {
+                  <span class="status normal">
+                    🟢 Normal
+                  </span>
+                }
+                @case ('low') {
+                  <span class="status low">
+                    🟡 Low stock
+                  </span>
+                }
+                @case ('out') {
+                  <span class="status out">
+                    🔴 Out of stock
+                  </span>
+                }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
