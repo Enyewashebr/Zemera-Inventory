@@ -6,14 +6,20 @@ import com.zemera.inventory.config.DatabaseConfig;
 import com.zemera.inventory.handler.UserAuthHandler;
 import com.zemera.inventory.handler.ProductHandler;
 import com.zemera.inventory.handler.BranchHandler;
+import com.zemera.inventory.handler.OrderHandler;
 import com.zemera.inventory.handler.PurchaseHandler;
+import com.zemera.inventory.handler.StockHandler;
 import com.zemera.inventory.repository.BranchRepository;
+import com.zemera.inventory.repository.OrderRepository;
 import com.zemera.inventory.repository.AuthRepository;
 import com.zemera.inventory.repository.ProductRepository;
 import com.zemera.inventory.repository.PurchaseRepository;
+import com.zemera.inventory.repository.StockRepository;
 import com.zemera.inventory.service.AuthService;
+import com.zemera.inventory.service.OrderService;
 import com.zemera.inventory.service.ProductService;
 import com.zemera.inventory.service.PurchaseService;
+import com.zemera.inventory.service.StockService;
 import com.zemera.inventory.util.JwtUtil;
 
 import io.vertx.core.AbstractVerticle;
@@ -99,13 +105,41 @@ JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
         ProductService productService = new ProductService(productRepo);
         ProductHandler productHandler = new ProductHandler(productService);
 
+
+        // Stock
+StockRepository stockRepo = new StockRepository(client);
+StockService stockService = new StockService(stockRepo);
+StockHandler stockHandler = new StockHandler(stockService);
+
+// My stock route
+router.get("/api/stock/my").handler(jwtAuthHandler).handler(stockHandler::getMyStock);
+router.get("/api/stock/branch/:branchId").handler(stockHandler::getStockByBranch);
+
+router.get("/api/stock/:productId")
+      .handler(jwtAuthHandler)
+      .handler(stockHandler::getStock);
+
+router.post("/api/stock/increase")
+      .handler(jwtAuthHandler)
+      .handler(stockHandler::increaseStock);
+
         // Auth
        AuthRepository authRepo = new AuthRepository(client);
 JwtUtil jwtUtil = new JwtUtil();
 AuthService authService = new AuthService(authRepo, jwtUtil);
 UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
 
+        // order
         
+        OrderRepository orderRepo = new OrderRepository(client);
+OrderService orderService =
+    new OrderService(orderRepo, stockRepo, productRepo);
+
+OrderHandler orderHandler = new OrderHandler(orderService);
+
+// Create Order
+router.post("/api/orders").handler(jwtAuthHandler).handler(orderHandler::createOrder);
+
 
     
     

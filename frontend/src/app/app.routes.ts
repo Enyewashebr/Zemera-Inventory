@@ -3,7 +3,7 @@ import { LoginComponent } from './auth/login.component';
 import { AuthGuard } from './gaurd/auth.guard';
 import { LayoutComponent } from './layout/layout.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { InventoryComponent } from './inventory/inventory.component';
+import { StockComponent } from './stock/stock.component';
 import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { PurchasesComponent } from './purchases/purchases.component';
@@ -33,7 +33,7 @@ export const routes: Routes = [
       { path: 'products', component: ProductsComponent },
       { path: 'purchases', component: PurchasesComponent },
       { path: 'orders', component: OrdersComponent },
-      { path: 'inventory', component: InventoryComponent },
+      { path: 'stocks', component: StockComponent },
       { path: 'reports', component: ReportsComponent },
       { path: 'settings', component: SettingsComponent },
 

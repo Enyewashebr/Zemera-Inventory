@@ -95,6 +95,17 @@ public class ProductRepository {
                 .put("createdAt", row.getLocalDateTime("created_at").toString());
         });
     }
+    public Future<Boolean> isSellable(Long productId) {
+    String sql = "SELECT sellable FROM products WHERE id = $1";
+
+    return client
+        .preparedQuery(sql)
+        .execute(Tuple.of(productId))
+        .map(rs -> rs.iterator().hasNext()
+            && rs.iterator().next().getBoolean("sellable")
+        );
+}
+
 
     // Get all products
     public Future<List<Product>> getAllProducts() {
@@ -165,5 +176,50 @@ public class ProductRepository {
         product.setCreatedAt(row.getLocalDateTime("created_at"));
         return product;
     }
+    public Future<Void> increaseStock(int productId, int branchId, int qty) {
+    String sql = """
+        INSERT INTO stocks (product_id, branch_id, quantity)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (product_id, branch_id)
+        DO UPDATE SET quantity = stocks.quantity + EXCLUDED.quantity,
+                      last_updated = now()
+    """;
+
+    return client
+        .preparedQuery(sql)
+        .execute(Tuple.of(productId, branchId, qty))
+        .mapEmpty();
+}
+
+
+// ProductRepository.java
+
+// Decrease stock only if product is sellable
+public Future<Void> decreaseStock(int productId, int branchId, double quantity) {
+    return getProductSellable(productId)
+        .compose(sellable -> {
+            if (!sellable) return Future.succeededFuture(); // kitchen food → no stock
+            String sql = "UPDATE stocks SET quantity = quantity - $1, last_updated = now() WHERE product_id=$2 AND branch_id=$3";
+            return client.preparedQuery(sql).execute(Tuple.of(quantity, productId, branchId)).mapEmpty();
+        });
+}
+
+public Future<Boolean> hasSufficientStock(int productId, int branchId, double quantity) {
+    return getProductSellable(productId)
+        .compose(sellable -> {
+            if (!sellable) return Future.succeededFuture(true); // kitchen food always allowed
+            String sql = "SELECT quantity FROM stocks WHERE product_id=$1 AND branch_id=$2";
+            return client.preparedQuery(sql).execute(Tuple.of(productId, branchId))
+                .map(rs -> rs.iterator().hasNext() && rs.iterator().next().getDouble("quantity") >= quantity);
+        });
+}
+
+// Helper: check sellable flag
+private Future<Boolean> getProductSellable(int productId) {
+    String sql = "SELECT sellable FROM products WHERE id=$1";
+    return client.preparedQuery(sql).execute(Tuple.of(productId))
+        .map(rs -> rs.iterator().hasNext() && rs.iterator().next().getBoolean("sellable"));
+}
+
 
 }

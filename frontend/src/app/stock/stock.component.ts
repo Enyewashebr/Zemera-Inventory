@@ -1,63 +1,84 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { StockService, StockItem } from '../services/stock.service';
+import { StockService } from '../services/stock.service';
+import { AuthService } from '../services/auth.service';
+import { BranchService } from '../services/branch.service';
+import { StockView } from '../model/stockView.model';
+import { Branch } from '../model/branch.model';
 
 @Component({
-  selector: 'app-inventory',
+  selector: 'app-stock',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './inventory.component.html',
-  styleUrl: './inventory.component.css'
+  templateUrl: './stock.component.html',
+  styleUrl: './stock.component.css'
 })
-export class StockComponent {
-  rows: (StockItem & { subcategory?: string })[] = [
-    { name: 'Dashen Beer', category: 'Beer', unit: 'pcs', stock: 24, subcategory: 'Dashen' },
-    { name: 'Harar Beer', category: 'Beer', unit: 'pcs', stock: 18, subcategory: 'Harar' },
-    { name: 'Water 0.5L', category: 'Water', unit: 'pcs', stock: 30, subcategory: '0.5 L' },
-    { name: 'Water 1L', category: 'Water', unit: 'pcs', stock: 12, subcategory: '1 L' },
-    { name: 'Areke Dagusa', category: 'Traditional Drinks', unit: 'L', stock: 5, subcategory: 'Dagusa' },
-    { name: 'Areke Gibto', category: 'Traditional Drinks', unit: 'L', stock: 3, subcategory: 'Gibto' },
-    { name: 'Tej Glass', category: 'Traditional Drinks', unit: 'glass', stock: 40, subcategory: 'Glass' }
-  ];
+export class StockComponent implements OnInit {
 
-  search = '';
-  categoryFilter = '';
+  stocks: StockView[] = [];
+  branches: Branch[] = [];
 
-  constructor(private stockService: StockService) {
-    // Sync initial quantities from the shared service.
-    const liveItems = this.stockService.getAll();
-    this.rows = this.rows.map((row) => {
-      const live = liveItems.find((i) => i.name === row.name);
-      return live ? { ...row, stock: live.stock } : row;
+  selectedBranchId?: number;
+  isBranchManager = false;
+  isSuperManager = false;
+  loading = false;
+  error = '';
+
+  constructor(
+    private stockService: StockService,
+    private authService: AuthService,
+    private branchService: BranchService
+  ) {}
+
+  ngOnInit(): void {
+    const role = this.authService.getUserRole();
+    this.isBranchManager = role === 'BRANCH_MANAGER';
+    this.isSuperManager = role === 'SUPER_MANAGER';
+
+    if (this.isBranchManager) this.loadMyStock();
+    if (this.isSuperManager) this.loadBranches();
+  }
+
+  loadMyStock() {
+    this.loading = true;
+    this.stockService.getMyStock().subscribe({
+      next: data => {
+        this.stocks = data;
+        this.loading = false;
+      },
+      error: err => {
+        this.loading = false;
+        this.error = 'Failed to load stock';
+        if (err.status === 401) this.authService.logout();
+      }
     });
   }
 
-  get categories(): string[] {
-    return Array.from(new Set(this.rows.map((r) => r.category)));
+  loadBranches() {
+    this.branchService.getAllBranches()
+      .subscribe(data => this.branches = data);
   }
 
-  filteredRows(): (StockItem & { subcategory?: string })[] {
-    const term = this.search.toLowerCase();
-    return this.rows.filter((row) => {
-      const matchesCategory = this.categoryFilter ? row.category === this.categoryFilter : true;
-      const matchesSearch =
-        !term ||
-        row.name.toLowerCase().includes(term) ||
-        row.category.toLowerCase().includes(term);
-      return matchesCategory && matchesSearch;
+  onBranchChange() {
+    if (!this.selectedBranchId) return;
+
+    this.loading = true;
+    this.stockService.getByBranch(this.selectedBranchId).subscribe({
+      next: data => {
+        this.stocks = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Failed to load branch stock';
+      }
     });
   }
 
-  status(row: StockItem): 'normal' | 'low' | 'out' {
-    if (row.stock <= 0) {
-      return 'out';
-    }
-    if (row.stock < 20) {
-      return 'low';
-    }
-    return 'normal';
+  stockStatus(qty: number): 'ok' | 'low' | 'out' {
+    if (qty <= 0) return 'out';
+    if (qty < 10) return 'low';
+    return 'ok';
   }
 }
-
-

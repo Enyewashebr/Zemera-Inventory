@@ -41,27 +41,21 @@ public class PurchaseService {
         return purchaseRepo.delete(id);
     }
 
-    public Future<Void> approvePurchase(Long id, Long approvedBy) {
-        // First get the purchase to check stock availability
-        return purchaseRepo.getById(id)
-            .compose(purchase -> {
-                if (purchase == null) {
-                    return Future.failedFuture("Purchase not found");
-                }
+   public Future<Void> approvePurchase(Long id, Long approvedBy) {
+    return purchaseRepo.getById(id)
+        .compose(purchase -> {
+            if (purchase == null) {
+                return Future.failedFuture("Purchase not found");
+            }
 
-                // Check if there's sufficient stock
-                return productRepo.hasSufficientStock(purchase.getProductId().intValue(), purchase.getQuantity())
-                    .compose(hasStock -> {
-                        if (!hasStock) {
-                            return Future.failedFuture("Insufficient stock for product ID: " + purchase.getProductId());
-                        }
-
-                        // Decrease stock and approve purchase
-                        return productRepo.decreaseStock(purchase.getProductId().intValue(), purchase.getQuantity())
-                            .compose(v -> purchaseRepo.approve(id, approvedBy));
-                    });
-            });
-    }
+            return productRepo.increaseStock(
+                    purchase.getProductId().intValue(),
+                    purchase.getBranchId(),
+                    purchase.getQuantity()
+                )
+                .compose(v -> purchaseRepo.approve(id, approvedBy));
+        });
+}
 
     public Future<Void> declinePurchase(Long id, Long approvedBy, String comment) {
         return purchaseRepo.decline(id, approvedBy, comment);

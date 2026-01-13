@@ -1,25 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InventoryService } from '../services/inventory.service';
-import { SalesService } from '../services/sales.service';
-
-interface OrderItem {
-  id: number;
-  product: string;
-  availableStock: number;
-  unit: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-interface FinalizedOrder {
-  id: number;
-  waiter: string;
-  createdAt: Date;
-  items: OrderItem[];
-  total: number;
-}
+import { StockService } from '../services/stock.service';
+import { OrderService } from '../services/order.service';
+import { Stock } from '../model/stock.model';
+import { StockView } from '../model/stockView.model';
+import { OrderItem, OrderSource } from '../model/order.model';
 
 @Component({
   selector: 'app-orders',
@@ -28,221 +14,143 @@ interface FinalizedOrder {
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css'
 })
-export class OrdersComponent {
-  products = [
-    { name: 'Dashen Beer', category: 'Beer', unit: 'pcs', price: 60, stock: 24 },
-    { name: 'Harar Beer', category: 'Beer', unit: 'pcs', price: 55, stock: 18 },
-    { name: 'Water 0.5L', category: 'Water', unit: 'pcs', price: 20, stock: 30 },
-    { name: 'Water 1L', category: 'Water', unit: 'pcs', price: 25, stock: 12 },
-    { name: 'Areke Dagusa', category: 'Traditional Drinks', unit: 'shot', price: 30, stock: 50 },
-    { name: 'Tej Glass', category: 'Traditional Drinks', unit: 'glass', price: 40, stock: 40 },
-    { name: 'Tibs (kg)', category: 'Foods for Sale', unit: 'kg', price: 1200, stock: 6.5 },
-    { name: 'Shiro (plate)', category: 'Foods for Sale', unit: 'plate', price: 80, stock: 20 }
-  ];
+export class OrdersComponent implements OnInit {
+  waiterName = '';
 
-  header = {
-    waiterName: '',
-    createdAt: new Date()
-  };
+  stockItems: StockView[] = [];
+  items: OrderItem[] = [];
 
-  items: OrderItem[] = [
-    {
-      id: 1,
-      product: '',
-      availableStock: 0,
+  loading = false;
+  error = '';
+  ticket: any | null = null;
+
+  constructor(
+    private stockService: StockService,
+    private orderApi: OrderService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadStock();
+    this.addRow();
+  }
+
+  loadStock() {
+    this.stockService.getMyStock().subscribe({
+      next: data => (this.stockItems = data),
+      error: () => (this.error = 'Failed to load stock')
+    });
+  }
+
+  addRow() {
+    this.items.push({
+      id: Date.now(),
+      source: 'STOCK',
+      productName: '',
       unit: '',
       quantity: 1,
       unitPrice: 0
-    }
-  ];
-  private nextItemId = 2;
-
-  formErrors: Record<string, string> = {};
-  orderError = '';
-  lastOrder: FinalizedOrder | null = null;
-  successMessage = '';
-  showPrintPrompt = false;
-  private lastOrderApplied = false;
-
-  constructor(
-    private inventoryService: InventoryService,
-    private salesService: SalesService
-  ) {}
-
-  get subtotal(): number {
-    return this.items.reduce((sum, item) => sum + this.itemTotal(item), 0);
+    });
   }
 
-  get totalItems(): number {
-    return this.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  removeRow(id: number) {
+    if (this.items.length === 1) return;
+    this.items = this.items.filter(i => i.id !== id);
   }
 
-  get totalAmount(): number {
-    return this.subtotal;
+  onSourceChange(item: OrderItem) {
+    item.productName = '';
+    item.productId = undefined;
+    item.availableStock = undefined;
+    item.unit = '';
+    item.unitPrice = 0;
+    item.quantity = 1;
   }
 
-  onProductChange(item: OrderItem): void {
-    const product = this.products.find((p) => p.name === item.product);
-    if (!product) {
-      item.availableStock = 0;
-      item.unit = '';
-      item.unitPrice = 0;
-      return;
-    }
-    item.availableStock = product.stock;
-    item.unit = product.unit;
-    item.unitPrice = product.price;
-    if (!item.quantity || item.quantity <= 0) {
-      item.quantity = 1;
-    }
+  onStockProductChange(item: OrderItem) {
+    const stock = this.stockItems.find(
+      s => s.productName === item.productName
+    );
+
+    if (!stock) return;
+
+    item.productId = stock.productId;
+    item.availableStock = stock.quantity;
+    item.unit = stock.unit;
+    item.unitPrice = 0; // price comes from backend/menu later
   }
 
   itemTotal(item: OrderItem): number {
-    return (item.quantity || 0) * (item.unitPrice || 0);
+    return item.quantity * item.unitPrice;
   }
 
-  addRow(): void {
-    this.items = [
-      ...this.items,
-      {
-        id: this.nextItemId++,
-        product: '',
-        availableStock: 0,
-        unit: '',
-        quantity: 1,
-        unitPrice: 0
-      }
-    ];
+  get total(): number {
+    return this.items.reduce((s, i) => s + this.itemTotal(i), 0);
   }
 
-  removeRow(id: number): void {
-    if (this.items.length === 1) return;
-    this.items = this.items.filter((i) => i.id !== id);
-  }
+  submitOrder() {
+    this.error = '';
+    this.ticket = null;
 
-  createOrder(): void {
-    this.formErrors = {};
-    this.orderError = '';
-    this.successMessage = '';
-
-    if (!this.header.waiterName.trim()) {
-      this.formErrors['waiterName'] = 'Waiter name is required.';
-    }
-
-    if (this.items.length === 0) {
-      this.orderError = 'At least one item is required.';
-    }
-
-    for (const item of this.items) {
-      if (!item.product) {
-        this.orderError = 'Each row must have a product.';
-        break;
-      }
-      if (!item.quantity || item.quantity <= 0) {
-        this.orderError = 'Quantity must be greater than zero.';
-        break;
-      }
-      if (item.quantity > item.availableStock) {
-        this.orderError = `Quantity for ${item.product} cannot exceed available stock (${item.availableStock}).`;
-        break;
-      }
-    }
-
-    if (this.totalAmount <= 0) {
-      this.orderError = 'Total amount must be greater than zero.';
-    }
-
-    if (this.formErrors['waiterName'] || this.orderError) {
+    if (!this.waiterName.trim()) {
+      this.error = 'Waiter name is required';
       return;
     }
 
-    const now = new Date();
-    const orderId = Date.now();
+    for (const i of this.items) {
+      if (!i.productName) {
+        this.error = 'All rows must have a product';
+        return;
+      }
 
-    // Deduct stock using shared InventoryService and capture sales rows.
-    const salesRows = this.items.map((item) => {
-      this.inventoryService.decreaseStock(item.product, item.quantity);
+      if (i.quantity <= 0) {
+        this.error = 'Quantity must be greater than zero';
+        return;
+      }
 
-      return {
-        orderId,
-        item: item.product,
-        qty: item.quantity,
-        unit: item.unit,
-        unitPrice: item.unitPrice,
-        totalPrice: this.itemTotal(item),
-        waiter: this.header.waiterName.trim(),
-        timestamp: now
-      };
+      if (
+        i.source === 'STOCK' &&
+        i.availableStock !== undefined &&
+        i.quantity > i.availableStock
+      ) {
+        this.error = `Insufficient stock for ${i.productName}`;
+        return;
+      }
+    }
+
+    this.loading = true;
+
+    this.orderApi.createOrder({
+      waiterName: this.waiterName,
+      items: this.items.map(i => ({
+        productName: i.productName,
+        quantity: i.quantity
+      }))
+    }).subscribe({
+      next: (res: any) => {
+        this.ticket = res;
+        this.loading = false;
+        this.loadStock(); // refresh after deduction
+        this.reset();
+      },
+      error: (err: any) => {
+        this.error = err.error?.message || 'Order failed';
+        this.loading = false;
+      }
     });
-
-    this.salesService.addSales(salesRows);
-
-    const finalized: FinalizedOrder = {
-      id: orderId,
-      waiter: this.header.waiterName.trim(),
-      createdAt: now,
-      items: this.items.map((i) => ({ ...i })),
-      total: this.totalAmount
-    };
-
-    this.lastOrder = finalized;
-    this.lastOrderApplied = true;
-    this.successMessage = 'Order created and stock updated. Review and print the ticket.';
-    this.showPrintPrompt = true;
-
-    this.resetItems();
   }
-
-  printTicket(): void {
-    // Simple print trigger; in a real app this would open a dedicated ticket view.
-    window.print();
+  reset() {
+    this.items = [];
+    this.addRow();
   }
-
-  cancelOrder(): void {
-    // Undo last order effects if applied.
-    if (this.lastOrder && this.lastOrderApplied) {
-      for (const item of this.lastOrder.items) {
-        this.inventoryService.increaseStock(item.product, item.quantity);
-      }
-      this.salesService.removeSalesByOrder(this.lastOrder.id);
-    }
-
-    this.resetItems();
-    this.header.waiterName = '';
-    this.successMessage = '';
-    this.orderError = '';
-    this.lastOrder = null;
-    this.showPrintPrompt = false;
-    this.lastOrderApplied = false;
-  }
-
-  confirmPrintTicket(): void {
-    if (!this.lastOrder) {
-      return;
-    }
-    this.printTicket();
-    this.showPrintPrompt = false;
-    // Once printed, we consider the order final and do not auto-undo on cancel.
-    this.lastOrderApplied = false;
-  }
-
-  cancelFromPrintDialog(): void {
-    this.cancelOrder();
-  }
-
-  private resetItems(): void {
-    this.items = [
-      {
-        id: 1,
-        product: '',
-        availableStock: 0,
-        unit: '',
-        quantity: 1,
-        unitPrice: 0
-      }
-    ];
-    this.nextItemId = 2;
-  }
+  confirmPrint() {
+  window.print();
+  this.ticket = null; // close modal after printing
 }
 
-
+cancelPrint() {
+  this.ticket = null; // close modal without printing
+}
+  printTicket() {
+    window.print();
+  }
+}

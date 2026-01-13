@@ -18,4 +18,12 @@ export class BranchService {
   create(branch: Branch): Observable<Branch> {
     return this.http.post<Branch>(this.baseUrl, branch);
   }
+  getAllBranches(): Observable<Branch[]> {
+    return this.http.get<Branch[]>(this.baseUrl);
+  }
 }
+// import { Injectable } from '@angular/core';
+// import { HttpClient } from '@angular/common/http';
+// import { Observable } from 'rxjs';
+// import { Branch } from '../model/branch.model';
+
