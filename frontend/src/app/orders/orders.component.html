@@ -1,4 +1,4 @@
-<section class="orders">
+<section class="orders no-print">
   <h2>Create Order</h2>
 
   <label>
@@ -60,11 +60,7 @@
         <td>{{ item.unit || '—' }}</td>
 
         <td>
-          <input
-            type="number"
-            min="0"
-            [(ngModel)]="item.unitPrice"
-          />
+          <input type="number" min="0" [(ngModel)]="item.unitPrice" />
         </td>
 
         <td class="numeric">
@@ -89,49 +85,39 @@
     Create order
   </button>
 
-  <!-- PRINT CONFIRMATION MODAL -->
-<div class="modal-backdrop" *ngIf="ticket">
-  <div class="modal">
-    <h3>Print Order Ticket?</h3>
-
-    <div class="ticket-preview">
-      <h4>Order #{{ ticket.orderId }}</h4>
-      <p>Date: {{ ticket.createdAt | date:'short' }}</p>
-      <p>Waiter: {{ ticket.waiterName }}</p>
-
-      <hr />
-
-      <div *ngFor="let i of ticket.items">
-        {{ i.quantity }} {{ i.unit }} {{ i.productName }}
-        <span class="right">
-          {{ i.lineTotal | currency:'ETB' }}
-        </span>
-      </div>
-
-      <hr />
-      <strong>Total: {{ ticket.totalAmount | currency:'ETB' }}</strong>
-    </div>
-
-    <div class="actions">
-      <button class="ghost" (click)="cancelPrint()">Cancel</button>
+  <!-- PRINT CONFIRMATION -->
+  <div class="modal-backdrop" *ngIf="ticket">
+    <div class="modal">
+      <h3>Print Order Ticket?</h3>
       <button class="primary" (click)="confirmPrint()">Print</button>
+      <button class="ghost" (click)="cancelPrint()">Cancel</button>
     </div>
-  </div>
-</div>
-
-
-  <!-- Ticket -->
-  <div *ngIf="ticket" class="ticket">
-    <h3>Order #{{ ticket.orderId }}</h3>
-    <p>Waiter: {{ ticket.waiterName }}</p>
-
-    <div *ngFor="let i of ticket.items">
-      {{ i.quantity }} {{ i.unit }} {{ i.productName }} –
-      {{ i.lineTotal | currency:'ETB' }}
-    </div>
-
-    <strong>Total: {{ ticket.totalAmount | currency:'ETB' }}</strong>
-
-    <button (click)="printTicket()">Print</button>
   </div>
 </section>
+
+<div id="receipt" class="print-only" *ngIf="ticket">
+  <div class="center">
+    <h3>Zemera Cafe</h3>
+    <p>Order #{{ ticket.orderId }}</p>
+  </div>
+
+  <hr />
+
+  <p>Date: {{ ticket.createdAt | date:'short' }}</p>
+  <p>Waiter: {{ ticket.waiterName }}</p>
+
+  <hr />
+
+  <table class="receipt-table">
+    <tr *ngFor="let item of ticket.items">
+      <td>{{ item.productName }}</td>
+      <td>{{ item.quantity }} x {{ item.unitPrice }}</td>
+      <td>{{ item.lineTotal | currency:'ETB' }}</td>
+    </tr>
+  </table>
+
+  <hr />
+
+  <p class="total">TOTAL: {{ ticket.totalAmount | currency:'ETB' }}</p>
+  <p class="center">Thank you!</p>
+</div>

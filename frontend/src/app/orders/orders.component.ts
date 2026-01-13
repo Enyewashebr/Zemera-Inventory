@@ -120,12 +120,16 @@ export class OrdersComponent implements OnInit {
     this.loading = true;
 
     this.orderApi.createOrder({
-      waiterName: this.waiterName,
-      items: this.items.map(i => ({
-        productName: i.productName,
-        quantity: i.quantity
-      }))
-    }).subscribe({
+  waiterName: this.waiterName,
+  items: this.items.map(i => ({
+    productId: i.productId,
+    productName: i.productName,
+    quantity: i.quantity,
+    unit: i.unit,
+    unitPrice: i.unitPrice
+  }))
+})
+.subscribe({
       next: (res: any) => {
         this.ticket = res;
         this.loading = false;
@@ -150,7 +154,5 @@ export class OrdersComponent implements OnInit {
 cancelPrint() {
   this.ticket = null; // close modal without printing
 }
-  printTicket() {
-    window.print();
-  }
+  
 }

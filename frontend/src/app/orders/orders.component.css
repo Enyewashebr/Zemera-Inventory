@@ -30,29 +30,44 @@ input, select {
   color: #dc2626;
 }
 
-.ticket {
-  margin-top: 2rem;
-  border-top: 1px dashed #999;
-  padding-top: 1rem;
+#print-only,
+.print-only {
+  display: none;
 }
 
+#receipt {
+  width: 58mm;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* =========================
+   PRINT RULES (FINAL)
+========================= */
 @media print {
-  body * {
-    visibility: hidden;
+
+  /* hide everything by default */
+  .no-print {
+    display: none !important;
   }
 
-  .modal, .modal * {
-    visibility: visible;
+  /* show receipt ONLY */
+  .print-only {
+    display: block !important;
   }
 
-  .modal {
-    position: absolute;
+  #receipt {
+    position: fixed;
     top: 0;
     left: 0;
-    width: 58mm; /* thermal printer */
+    width: 58mm;
+    margin: 0;
+    padding: 0;
   }
 
-  .actions {
-    display: none;
+  @page {
+    margin: 0;
+    size: auto;
   }
 }

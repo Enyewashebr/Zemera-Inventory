@@ -130,18 +130,25 @@ AuthService authService = new AuthService(authRepo, jwtUtil);
 UserAuthHandler userAuthHandler = new UserAuthHandler(authService);
 
         // order
-        
+         // ===== Repositories =====
+        // StockRepository stockRepo = new StockRepository(client);
         OrderRepository orderRepo = new OrderRepository(client);
-OrderService orderService =
-    new OrderService(orderRepo, stockRepo, productRepo);
 
-OrderHandler orderHandler = new OrderHandler(orderService);
+        // ===== Services =====
+        OrderService orderService = new OrderService(client, orderRepo, stockRepo);
 
-// Create Order
-router.post("/api/orders").handler(jwtAuthHandler).handler(orderHandler::createOrder);
+        // ===== Handlers =====
+        OrderHandler orderHandler = new OrderHandler(orderService);
 
 
-    
+    router.post("/api/orders")
+      .handler(jwtAuthHandler)
+      .handler(orderHandler::createOrder);
+
+router.get("/api/orders/:id")
+      .handler(jwtAuthHandler)
+      .handler(orderHandler::getOrderTicket);
+
     
 
 

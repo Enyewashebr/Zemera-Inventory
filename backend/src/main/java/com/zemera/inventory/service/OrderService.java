@@ -1,68 +1,111 @@
 package com.zemera.inventory.service;
 
-import com.zemera.inventory.model.Order;
 import com.zemera.inventory.model.OrderItem;
 import com.zemera.inventory.repository.OrderRepository;
-import com.zemera.inventory.repository.ProductRepository;
 import com.zemera.inventory.repository.StockRepository;
-import io.vertx.core.Future;
+import io.vertx.core.*;
+import io.vertx.sqlclient.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class OrderService {
 
+    private final Pool client;
     private final OrderRepository orderRepo;
     private final StockRepository stockRepo;
-    private final ProductRepository productRepo;
 
-    public OrderService(OrderRepository orderRepo, StockRepository stockRepo, ProductRepository productRepo) {
+    public OrderService(Pool client,
+                        OrderRepository orderRepo,
+                        StockRepository stockRepo) {
+
+        this.client = client;
         this.orderRepo = orderRepo;
         this.stockRepo = stockRepo;
-        this.productRepo = productRepo;
     }
 
-    public Future<Order> createOrder(Order order) {
+    /* ==========================
+       CREATE ORDER
+    ========================== */
 
-        // Check stock for each item if sellable
-        Future<Void> stockCheck = Future.succeededFuture();
+   public Future<Long> createOrder(int branchId,
+                                String waiterName,
+                                List<OrderItem> items) {
 
-        for (OrderItem item : order.getItems()) {
-            stockCheck = stockCheck.compose(v ->
-                productRepo.isSellable(item.getProductId())
-                    .compose(sellable -> {
-                        if (!sellable) {
-                            // Kitchen item, skip stock
-                            return Future.succeededFuture();
-                        }
+    double total = items.stream()
+        .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+        .sum();
 
-                        // Check stock
-                        return stockRepo.getStock(order.getBranchId(), item.getProductId())
-                                .compose(stockQty -> {
-                                    if (stockQty < item.getQuantity()) {
-                                        return Future.failedFuture("Insufficient stock for product ID " + item.getProductId());
-                                    }
-                                    return Future.succeededFuture();
-                                });
-                    })
-            );
+    Promise<Long> promise = Promise.promise();
+
+    client.getConnection(connAr -> {
+        if (connAr.failed()) {
+            promise.fail(connAr.cause());
+            return;
         }
 
-        return stockCheck.compose(v -> {
-            // Decrease stock for sellable items
-            Future<Void> stockUpdate = Future.succeededFuture();
-            for (OrderItem item : order.getItems()) {
-                stockUpdate = stockUpdate.compose(v2 ->
-                    productRepo.isSellable(item.getProductId())
-                        .compose(sellable -> {
-                            if (!sellable) return Future.succeededFuture();
-                            return stockRepo.decreaseStock(order.getBranchId(), item.getProductId(), item.getQuantity());
-                        })
-                );
+        SqlConnection conn = connAr.result();
+
+        conn.begin(txAr -> {
+            if (txAr.failed()) {
+                conn.close();
+                promise.fail(txAr.cause());
+                return;
             }
 
-            return stockUpdate.compose(v3 -> orderRepo.create(order));
-        });
-    }
+            Transaction tx = txAr.result();
 
-    public Future<Order> getOrderById(Long orderId) {
-        return orderRepo.getById(orderId);
+            orderRepo.insertOrder(conn, branchId, waiterName, total)
+                .compose(orderId -> {
+
+                    List<Future> ops = new ArrayList<>();
+
+                    for (OrderItem item : items) {
+                        ops.add(
+                            orderRepo.insertOrderItem(conn, orderId, item)
+                                .compose(v -> {
+                                    if (item.getProductId() != null) {
+                                        return stockRepo.decreaseStock(
+                                            branchId,
+                                            item.getProductId(),
+                                            item.getQuantity()
+                                        );
+                                    }
+                                    return Future.succeededFuture();
+                                })
+                        );
+                    }
+
+                    return CompositeFuture.all(ops).map(orderId);
+                })
+                .onSuccess(orderId -> {
+    tx.commit(ar -> {
+        conn.close();
+        if (ar.succeeded()) {
+            promise.complete(orderId);
+        } else {
+            promise.fail(ar.cause());
+        }
+    });
+})
+.onFailure(err -> {
+    tx.rollback(ar -> {
+        conn.close();
+        promise.fail(err);
+    });
+});
+
+        });
+    });
+
+    return promise.future();
+}
+
+    /* ==========================
+       REPRINT TICKET
+    ========================== */
+
+    public Future<RowSet<Row>> getOrderTicket(long orderId) {
+        return orderRepo.getOrderWithItems(orderId);
     }
 }

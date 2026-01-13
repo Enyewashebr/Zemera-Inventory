@@ -8,8 +8,11 @@ import { AuthService } from './auth.service'; // make sure this exists
 ======================= */
 
 export interface CreateOrderItemPayload {
+  productId?: number;
   productName: string;
   quantity: number;
+  unit: string;
+  unitPrice: number;
 }
 
 export interface CreateOrderPayload {
