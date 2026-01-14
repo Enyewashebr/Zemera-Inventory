@@ -8,7 +8,7 @@ import { OrdersComponent } from './orders/orders.component';
 import { ProductsComponent } from './products/products.component';
 import { PurchasesComponent } from './purchases/purchases.component';
 import { ReportsComponent } from './reports/reports.component';
-import { SettingsComponent } from './settings/settings.component';
+// import { SettingsComponent } from './settings/settings.component';
 import { UserComponent } from './user/user/user.component';
 import { BranchComponent } from './branch/branch.component';
 import { UserFormComponent } from './user/user-form/user-form.component';
@@ -35,7 +35,7 @@ export const routes: Routes = [
       { path: 'orders', component: OrdersComponent },
       { path: 'stocks', component: StockComponent },
       { path: 'reports', component: ReportsComponent },
-      { path: 'settings', component: SettingsComponent },
+      // { path: 'settings', component: SettingsComponent },
 
       // SUPER_MANAGER only
       { path: 'users', component: UserComponent, canActivate: [AuthGuard], data: { roles: ['SUPER_MANAGER'] } },
