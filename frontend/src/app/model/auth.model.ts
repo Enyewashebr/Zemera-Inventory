@@ -6,4 +6,5 @@ export interface AuthModel {
   username: string;
   role: 'SUPER_MANAGER' | 'BRANCH_MANAGER';
   name?: string;
+  branchId? :number;
 }

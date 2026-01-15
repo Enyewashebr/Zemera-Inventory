@@ -3,13 +3,9 @@ package com.zemera.inventory.handler;
 import com.zemera.inventory.model.Purchase;
 import com.zemera.inventory.service.PurchaseService;
 
-import io.vertx.core.Future;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.sqlclient.Tuple;
-
-import java.time.LocalDate;
 
 public class PurchaseHandler {
 

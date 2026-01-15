@@ -1,40 +1,43 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
-export interface SaleRow {
-  id: number;
-  orderId: number;
-  item: string;
-  qty: number;
-  unit: string;
-  unitPrice: number;
-  totalPrice: number;
-  waiter: string;
-  timestamp: Date;
-}
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class SalesService {
-  private sales: SaleRow[] = [];
 
-  addSales(rows: Omit<SaleRow, 'id'>[]): void {
-    const baseId = Date.now();
-    rows.forEach((row, index) => {
-      this.sales.push({
-        ...row,
-        id: baseId + index
-      });
+  private baseUrl = 'http://localhost:8080/api/reports';
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
+
+  private headers(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: `Bearer ${this.authService.getToken()}`
     });
   }
 
-  getSales(): SaleRow[] {
-    return this.sales.map((s) => ({ ...s }));
+ getReport(
+  time: string,
+  type: string,
+  value: string,
+  branchId?: number, // ✅ optional
+): Observable<any> {
+
+  let params = new HttpParams()
+    .set('time', time)
+    .set('type', type)
+    .set('value', value);
+
+  if (branchId !== undefined) {
+    params = params.set('branchId', branchId.toString());
   }
 
-  removeSalesByOrder(orderId: number): void {
-    this.sales = this.sales.filter((s) => s.orderId !== orderId);
-  }
+  return this.http.get<any>(this.baseUrl, {
+    headers: this.headers(),
+    params
+  });
 }
-
-
+}

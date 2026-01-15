@@ -80,6 +80,11 @@ export class AuthService {
     return this.authSubject.value?.username ?? 'User';
   }
 
+  getUser(): AuthModel | null {
+  return this.authSubject.value;
+}
+
+
   getUserRole(): string {
     return this.authSubject.value?.role ?? 'UNKNOWN';
   }

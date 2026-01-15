@@ -1,178 +1,123 @@
 <section class="reports">
   <div class="section-header">
     <h2>Reports</h2>
-    <p>View daily performance and download summaries.</p>
+    <p>Select report type and time period, then download PDF or Excel.</p>
+  <label *ngIf="isSuperManager">
+  Select Branch
+  <select [(ngModel)]="selectedBranchId" (change)="loadReport()">
+    <option [ngValue]="null">-- Select Branch --</option>
+    <option *ngFor="let b of branches" [ngValue]="b.id">
+      {{ b.name }}
+    </option>
+  </select>
+</label>
+
   </div>
 
-  <div class="tabs">
-    <button
-      class="tab"
-      [class.active]="activeTab === 'sales'"
-      (click)="activeTab = 'sales'"
-    >
-      Daily sales
-    </button>
-    <button
-      class="tab"
-      [class.active]="activeTab === 'purchases'"
-      (click)="activeTab = 'purchases'"
-    >
-      Daily purchases
-    </button>
-    <button
-      class="tab"
-      [class.active]="activeTab === 'profit'"
-      (click)="activeTab = 'profit'"
-    >
-      Profit
-    </button>
-    <button
-      class="tab"
-      [class.active]="activeTab === 'monthly'"
-      (click)="activeTab = 'monthly'"
-    >
-      Monthly
-    </button>
+  <div class="filters">
+    <label>
+      Time
+      <select [(ngModel)]="selectedTime">
+        <option value="daily">Daily</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+    </label>
+
+    <label>
+      Report
+      <select [(ngModel)]="selectedReport">
+        <option value="sales">Sales</option>
+        <option value="purchases">Purchases</option>
+        <option value="profit">Profit</option>
+      </select>
+    </label>
+
+    <!-- Date / Month / Year input -->
+    <label *ngIf="selectedTime === 'daily'">
+      Date
+      <input type="date" [(ngModel)]="filterDate" />
+    </label>
+    <label *ngIf="selectedTime === 'monthly'">
+      Month
+      <input type="month" [(ngModel)]="filterMonth" />
+    </label>
+    <label *ngIf="selectedTime === 'yearly'">
+      Year
+      <input type="number" [(ngModel)]="filterYear" min="2000" max="2100" />
+    </label>
   </div>
 
-  <div class="tab-body">
-    @if (activeTab === 'sales') {
-      <div class="card">
-        <div class="filters">
-          <label>
-            <span>Date</span>
-            <input
-              type="date"
-              [(ngModel)]="salesFilterDate"
-            />
-          </label>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Item name</th>
-                <th>Quantity sold</th>
-                <th>Unit</th>
-                <th>Unit price</th>
-                <th>Total price</th>
-                <th>Waiter</th>
-                <th>Sold at</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of salesRows; track row.id) {
-                <tr>
-                  <td>{{ row.item }}</td>
-                  <td class="numeric">{{ row.qty }}</td>
-                  <td>{{ row.unit }}</td>
-                  <td class="numeric">
-                    {{ row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
-                  </td>
-                  <td class="numeric">
-                    {{ row.totalPrice | currency: 'ETB':'symbol':'1.2-2' }}
-                  </td>
-                  <td>{{ row.waiter }}</td>
-                  <td>{{ row.timestamp | date: 'short' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    } @else if (activeTab === 'purchases') {
-      <div class="card">
-        <div class="filters">
-          <label>
-            <span>Date</span>
-            <input
-              type="date"
-              [(ngModel)]="purchaseFilterDate"
-            />
-          </label>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Item name</th>
-                <th>Quantity purchased</th>
-                <th>Unit</th>
-                <th>Unit price</th>
-                <th>Total cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of purchaseRows; track row.item) {
-                <tr>
-                  <td>{{ row.item }}</td>
-                  <td class="numeric">{{ row.qty }}</td>
-                  <td>{{ row.unit }}</td>
-                  <td class="numeric">
-                    {{ row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
-                  </td>
-                  <td class="numeric">
-                    {{ row.qty * row.unitPrice | currency: 'ETB':'symbol':'1.2-2' }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    } @else if (activeTab === 'profit') {
-      <div class="card profit-card">
-        <h3>Profit report</h3>
-        <div class="profit-grid">
-          <div class="metric">
-            <span class="label">Total sales</span>
-            <span class="value">{{ totalSales | currency: 'ETB':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="metric">
-            <span class="label">Total purchases</span>
-            <span class="value">{{ totalPurchases | currency: 'ETB':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="metric">
-            <span class="label">Profit</span>
-            <span class="value">{{ profit | currency: 'ETB':'symbol':'1.2-2' }}</span>
-          </div>
-        </div>
-      </div>
-    } @else {
-      <div class="card">
-        <div class="filters">
-          <label>
-            <span>Month</span>
-            <input
-              type="month"
-              [(ngModel)]="monthlyFilterMonth"
-            />
-          </label>
-        </div>
-        <div class="monthly-summary">
-          <div class="metric">
-            <span class="label">Monthly profit</span>
-            <span class="value">{{ profit | currency: 'ETB':'symbol':'1.2-2' }}</span>
-          </div>
-          <div class="metric">
-            <span class="label">Stock summary</span>
-            <span class="value">Demo data</span>
-          </div>
-        </div>
-      </div>
-    }
+  <div class="table-wrapper" *ngIf="selectedReport === 'sales'">
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Unit</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+          <th>Waiter</th>
+          <th>Sold At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of salesRows">
+          <td>{{ row.item }}</td>
+          <td>{{ row.qty }}</td>
+          <td>{{ row.unit }}</td>
+          <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+          <td>{{ row.totalPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+          <td>{{ row.waiter }}</td>
+          <td>{{ row.timestamp | date:'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="summary">Total Sales: {{ totalSales | currency:'ETB':'symbol':'1.2-2' }}</div>
   </div>
 
-  <div class="download-bar">
-    <span class="label">Report download</span>
-    <div class="buttons">
-      <button type="button" class="ghost" (click)="download('pdf')">Download PDF</button>
-      <button type="button" class="ghost" (click)="download('xls')">Download Excel</button>
+  <div class="table-wrapper" *ngIf="selectedReport === 'purchases'">
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Unit</th>
+          <th>Unit Price</th>
+          <th>Total Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of purchaseRows">
+          <td>{{ row.item }}</td>
+          <td>{{ row.qty }}</td>
+          <td>{{ row.unit }}</td>
+          <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+          <td>{{ row.qty * row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="summary">Total Purchases: {{ totalPurchases | currency:'ETB':'symbol':'1.2-2' }}</div>
+  </div>
+
+  <div class="profit-card" *ngIf="selectedReport === 'profit'">
+    <div class="profit-grid">
+      <div class="metric">
+        <span>Total Sales</span>
+        <span>{{ totalSales | currency:'ETB':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="metric">
+        <span>Total Purchases</span>
+        <span>{{ totalPurchases | currency:'ETB':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="metric">
+        <span>Profit</span>
+        <span>{{ profit | currency:'ETB':'symbol':'1.2-2' }}</span>
+      </div>
     </div>
   </div>
+  <div class="download-bar">
+    <button (click)="download('pdf')">Download PDF</button>
+    <button (click)="download('xls')">Download Excel</button>
+  </div>
 </section>
-
-
-
-
-
