@@ -19,25 +19,21 @@ export class SalesService {
     });
   }
 
- getReport(
-  time: string,
-  type: string,
-  value: string,
-  branchId?: number, // ✅ optional
-): Observable<any> {
-
-  let params = new HttpParams()
-    .set('time', time)
-    .set('type', type)
-    .set('value', value);
-
-  if (branchId !== undefined) {
-    params = params.set('branchId', branchId.toString());
+  getSales(time: string, value: string, branchId?: number): Observable<any> {
+    let params = new HttpParams().set('time', time).set('value', value);
+    if (branchId !== undefined) params = params.set('branchId', branchId.toString());
+    return this.http.get<any>(`${this.baseUrl}/sales`, { headers: this.headers(), params });
   }
 
-  return this.http.get<any>(this.baseUrl, {
-    headers: this.headers(),
-    params
-  });
-}
+  getPurchases(time: string, value: string, branchId?: number): Observable<any> {
+    let params = new HttpParams().set('time', time).set('value', value);
+    if (branchId !== undefined) params = params.set('branchId', branchId.toString());
+    return this.http.get<any>(`${this.baseUrl}/purchases`, { headers: this.headers(), params });
+  }
+  
+  getProfit(time: string, value: string, branchId?: number): Observable<any> {
+    let params = new HttpParams().set('time', time).set('value', value);
+    if (branchId !== undefined) params = params.set('branchId', branchId.toString());
+    return this.http.get<any>(`${this.baseUrl}/profit`, { headers: this.headers(), params });
+  }
 }

@@ -1,5 +1,8 @@
 package com.zemera.inventory.repository;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.sqlclient.Row;
@@ -14,131 +17,172 @@ public class ReportsRepository {
         this.client = client;
     }
 
-    // ================= SALES (ITEM LEVEL) =================
-    public Future<JsonArray> getSalesRows(String time, String value, Integer branchId) {
+    // ================= SALES =================
+public Future<JsonArray> getSalesRows(String time, String value, Integer branchId) {
 
-        String sql = buildSalesQuery(time, branchId);
-        Tuple params = buildParams(value, branchId);
+    String sql = """
+        SELECT
+            oi.product_name AS item,
+            SUM(oi.quantity) AS qty,
+            oi.unit AS unit,
+            oi.unit_price AS "unitPrice",
+            SUM(oi.line_total) AS "totalPrice",
+            o.waiter_name AS waiter,
+            MAX(o.created_at):: date AS timestamp
+        FROM orders o
+        JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.branch_id = $1
+    """;
 
-        System.out.println("SQL: " + sql);
-        System.out.println("Params: " + params);
+    Tuple params = Tuple.tuple();
+    params.addInteger(branchId);
+    
 
-        return client
-            .preparedQuery(sql)
-            .execute(params)
-            .map(rows -> {
-                JsonArray array = new JsonArray();
-                for (Row row : rows) {
-                    array.add(row.toJson());
-                }
-                return array;
-            });
-    }
-
-    // ================= TOTAL SALES =================
-    public Future<Double> getTotalSales(String time, String value, Integer branchId) {
-        String sql = buildTotalSalesQuery(time, branchId);
-        Tuple params = buildParams(value, branchId);
-
-        System.out.println("SQL: " + sql);
-        System.out.println("Params: " + params);
-
-        return client
-            .preparedQuery(sql)
-            .execute(params)
-            .map(rows -> {
-                if (!rows.iterator().hasNext()) return 0.0;
-                return rows.iterator().next().getDouble(0);
-            });
-    }
-
-    // ================= TOTAL PURCHASES =================
-    public Future<Double> getTotalPurchases(String time, String value, Integer branchId) {
-        String sql = buildTotalPurchasesQuery(time, branchId);
-        Tuple params = buildParams(value, branchId);
-
-        System.out.println("SQL: " + sql);
-        System.out.println("Params: " + params);
-
-        return client
-            .preparedQuery(sql)
-            .execute(params)
-            .map(rows -> {
-                if (!rows.iterator().hasNext()) return 0.0;
-                return rows.iterator().next().getDouble(0);
-            });
-    }
-
-    // ================= QUERY BUILDERS =================
-    private String buildSalesQuery(String time, Integer branchId) {
-        String dateFilter = getDateFilter("o.created_at", time);
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ")
-           .append("oi.product_name AS item, ")
-           .append("oi.quantity AS qty, ")
-           .append("oi.unit AS unit, ")
-           .append("oi.unit_price AS \"unitPrice\", ")
-           .append("(oi.quantity * oi.unit_price) AS \"totalPrice\", ")
-           .append("o.waiter_name AS waiter, ")
-           .append("o.created_at AS timestamp ")
-           .append("FROM orders o ")
-           .append("JOIN order_items oi ON oi.order_id = o.id ")
-           .append("WHERE ")
-           .append(dateFilter);
-
-        if (branchId != null) {
-            sql.append(" AND o.branch_id = ?");
+    switch (time) {
+        case "daily" -> {
+            sql += " AND o.created_at::date = $2";
+            params.addLocalDate(LocalDate.parse(value));
+        }
+         case "monthly" -> {
+            sql += """
+                AND DATE_TRUNC('month', o.created_at)
+                    = DATE_TRUNC('month', $2::date)
+            """;
+            params.addLocalDate(LocalDate.parse(value));
         }
 
-        sql.append(" ORDER BY o.created_at DESC");
-
-        return sql.toString();
-    }
-
-    private String buildTotalSalesQuery(String time, Integer branchId) {
-        String dateFilter = getDateFilter("created_at", time);
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE ")
-           .append(dateFilter);
-
-        if (branchId != null) {
-            sql.append(" AND branch_id = ?");
+        case "yearly" -> {
+            sql += " AND EXTRACT(YEAR FROM o.created_at) = $2";
+            params.addInteger(Integer.parseInt(value.substring(0, 4)));
         }
-
-        return sql.toString();
     }
 
-    private String buildTotalPurchasesQuery(String time, Integer branchId) {
-        String dateFilter = getDateFilter("created_at", time);
+    sql += """
+        GROUP BY oi.product_name, oi.unit, oi.unit_price, o.waiter_name
+        ORDER BY timestamp DESC
+    """;
 
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE ")
-           .append(dateFilter);
+    return client
+        .preparedQuery(sql)
+        .execute(params)
+        .map(rows -> {
+            JsonArray array = new JsonArray();
+            for (Row row : rows) {
+                array.add(row.toJson());
+            }
+            return array;
+        });
+}
 
-        if (branchId != null) {
-            sql.append(" AND branch_id = ?");
+
+    // ================= PURCHASES =================
+
+//     public Future<JsonArray> getPurchaseRows(String time, String value, Integer branchId) {
+
+//     StringBuilder sql = new StringBuilder("""
+//     SELECT
+//         pr.name AS item,
+//         SUM(p.quantity) AS quantity,
+//         AVG(p.unit_price) AS "unitPrice",
+//         SUM(p.total_cost) AS "totalCost"
+//     FROM purchase p
+//     JOIN products pr ON pr.id = p.product_id
+//     WHERE 1=1
+// """);
+
+// List<Object> params = new ArrayList<>();
+
+// sql.append(" AND p.status = 'APPROVED'");
+// sql.append(" AND p.branch_id = ?");
+// params.add(branchId);
+
+// switch (time) {
+//     case "daily" -> {
+//         sql.append(" AND p.purchase_date = ?");
+//         params.add(LocalDate.parse(value));
+//     }
+//     case "monthly" -> {
+//         sql.append("""
+//             AND DATE_TRUNC('month', p.purchase_date)
+//                 = DATE_TRUNC('month', ?::date)
+//         """);
+//         params.add(LocalDate.parse(value));
+//     }
+//     case "yearly" -> {
+//         sql.append(" AND EXTRACT(YEAR FROM p.purchase_date) = ?");
+//         params.add(Integer.parseInt(value.substring(0, 4)));
+//     }
+// }
+
+// sql.append("""
+//     GROUP BY pr.name
+//     ORDER BY pr.name
+// """);
+// System.out.println("SQL => " + sql);
+// System.out.println("PARAMS => " + params);
+
+//     return client
+//         .preparedQuery(sql.toString())
+//         .execute(Tuple.from(params))
+//         .map(rows -> {
+//             JsonArray arr = new JsonArray();
+//             for (Row r : rows) {
+//                 arr.add(r.toJson());
+//             }
+//             return arr;
+//         });
+// }
+public Future<JsonArray> getPurchaseRows(String time, String value, Integer branchId) {
+
+    String sql = """
+        SELECT
+            pr.name AS item,
+            SUM(p.quantity) AS quantity,
+            AVG(p.unit_price) AS "unitPrice",
+            SUM(p.total_cost) AS "totalCost"
+        FROM purchase p
+        JOIN products pr ON pr.id = p.product_id
+        WHERE p.branch_id = $1
+          AND p.status = 'APPROVED'
+    """;
+
+    Tuple params = Tuple.tuple();
+    params.addInteger(branchId);
+
+    switch (time) {
+        case "daily" -> {
+            sql += " AND p.purchase_date::date = $2";
+            params.addLocalDate(LocalDate.parse(value));
         }
-
-        return sql.toString();
+        case "monthly" -> {
+            sql += """
+                AND DATE_TRUNC('month', p.purchase_date)
+                    = DATE_TRUNC('month', $2::date)
+            """;
+            params.addLocalDate(LocalDate.parse(value));
+        }
+        case "yearly" -> {
+            sql += " AND EXTRACT(YEAR FROM p.purchase_date) = $2";
+            params.addInteger(Integer.parseInt(value.substring(0, 4)));
+        }
     }
 
-    // ================= DATE FILTER HELPER =================
-    private String getDateFilter(String column, String time) {
-        return switch (time) {
-            case "daily" -> "DATE(" + column + ") = ?";
-            case "monthly" -> "DATE_TRUNC('month', " + column + ") = DATE_TRUNC('month', ?::date)";
-            case "yearly" -> "DATE_TRUNC('year', " + column + ") = DATE_TRUNC('year', ?::date)";
-            default -> throw new IllegalArgumentException("Invalid time: " + time);
-        };
-    }
+    sql += """
+        GROUP BY pr.name
+        ORDER BY pr.name
+    """;
 
-    // ================= PARAM BUILDERS =================
-    private Tuple buildParams(String value, Integer branchId) {
-        Tuple tuple = Tuple.tuple();
-        tuple.addString(value); // date/month/year
-        if (branchId != null) tuple.addInteger(branchId);
-        return tuple;
-    }
+    return client
+        .preparedQuery(sql)
+        .execute(params)
+        .map(rows -> {
+            JsonArray array = new JsonArray();
+            for (Row row : rows) {
+                array.add(row.toJson());
+            }
+            return array;
+        });
+}
+
+
 }

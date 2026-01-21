@@ -17,7 +17,7 @@
   <div class="filters">
     <label>
       Time
-      <select [(ngModel)]="selectedTime">
+      <select [(ngModel)]="selectedTime" (change)="loadReport()">
         <option value="daily">Daily</option>
         <option value="monthly">Monthly</option>
         <option value="yearly">Yearly</option>
@@ -26,7 +26,7 @@
 
     <label>
       Report
-      <select [(ngModel)]="selectedReport">
+      <select [(ngModel)]="selectedReport" (change)="loadReport()">
         <option value="sales">Sales</option>
         <option value="purchases">Purchases</option>
         <option value="profit">Profit</option>
@@ -36,15 +36,15 @@
     <!-- Date / Month / Year input -->
     <label *ngIf="selectedTime === 'daily'">
       Date
-      <input type="date" [(ngModel)]="filterDate" />
+      <input type="date" [(ngModel)]="filterDate" (change)="loadReport()"/>
     </label>
     <label *ngIf="selectedTime === 'monthly'">
       Month
-      <input type="month" [(ngModel)]="filterMonth" />
+      <input type="month" [(ngModel)]="filterMonth" (change)="loadReport()"/>
     </label>
     <label *ngIf="selectedTime === 'yearly'">
       Year
-      <input type="number" [(ngModel)]="filterYear" min="2000" max="2100" />
+      <input type="number" [(ngModel)]="filterYear" min="2000" max="2100" (change)="loadReport()"/>
     </label>
   </div>
 
@@ -53,25 +53,26 @@
       <thead>
         <tr>
           <th>Item</th>
-          <th>Quantity</th>
-          <th>Unit</th>
-          <th>Unit Price</th>
-          <th>Total</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Total Cost</th>
+            <th>Status</th>
           <th>Waiter</th>
           <th>Sold At</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of salesRows">
-          <td>{{ row.item }}</td>
-          <td>{{ row.qty }}</td>
-          <td>{{ row.unit }}</td>
-          <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
-          <td>{{ row.totalPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
-          <td>{{ row.waiter }}</td>
-          <td>{{ row.timestamp | date:'short' }}</td>
-        </tr>
-      </tbody>
+  <tr *ngFor="let row of salesRows">
+    <td>{{ row.item }}</td>
+    <td>{{ row.qty }}</td>
+    <td>{{ row.unit }}</td>
+    <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+    <td>{{ row.totalPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+    <td>{{ row.waiter }}</td>
+    <td>{{ row.timestamp | date:'yyyy-MM-dd' }}</td>
+  </tr>
+</tbody>
+
     </table>
     <div class="summary">Total Sales: {{ totalSales | currency:'ETB':'symbol':'1.2-2' }}</div>
   </div>
@@ -81,21 +82,24 @@
       <thead>
         <tr>
           <th>Item</th>
-          <th>Quantity</th>
-          <th>Unit</th>
-          <th>Unit Price</th>
-          <th>Total Cost</th>
+<th>Quantity</th>
+<th>Unit Price</th>
+<th>Total Cost</th>
         </tr>
       </thead>
-      <tbody>
-        <tr *ngFor="let row of purchaseRows">
-          <td>{{ row.item }}</td>
-          <td>{{ row.qty }}</td>
-          <td>{{ row.unit }}</td>
-          <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
-          <td>{{ row.qty * row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
-        </tr>
-      </tbody>
+     <tbody>
+  <tr *ngFor="let row of purchaseRows">
+    <td>{{ row.item }}</td>
+    <td>{{ row.quantity }}</td>
+
+    <!-- unit column intentionally empty or removed -->
+
+    <td>{{ row.unitPrice | currency:'ETB':'symbol':'1.2-2' }}</td>
+    <td>{{ row.totalCost | currency:'ETB':'symbol':'1.2-2' }}</td>
+  </tr>
+</tbody>
+
+
     </table>
     <div class="summary">Total Purchases: {{ totalPurchases | currency:'ETB':'symbol':'1.2-2' }}</div>
   </div>

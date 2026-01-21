@@ -12,35 +12,75 @@ public class ReportsHandler {
         this.service = service;
     }
 
-    public void getReports(RoutingContext ctx) {
+   public void getSales(RoutingContext ctx) {
 
-        String time = ctx.request().getParam("time");
-        String type = ctx.request().getParam("type");
-        String value = ctx.request().getParam("value");
-        String branchParam = ctx.request().getParam("branchId");
+    String time = ctx.request().getParam("time");     // daily | monthly | yearly
+    String value = ctx.request().getParam("value");  // date string
+    Integer branchId = getBranchId(ctx);              // from JWT
 
-        Integer branchId = branchParam != null ? Integer.valueOf(branchParam) : null;
-
-        if (time == null || type == null || value == null) {
+    service.getSalesReport(time, value, branchId)
+        .onSuccess(result -> ctx.response()
+            .putHeader("Content-Type", "application/json")
+            .end(result.encode()))
+        .onFailure(err -> {
+            err.printStackTrace();
             ctx.response()
-                    .setStatusCode(400)
-                    .end(new JsonObject().put("error", "Missing parameters").encode());
-            return;
-        }
+                .setStatusCode(500)
+                .end(new JsonObject()
+                    .put("error", err.getMessage())
+                    .encode());
+        });
+}
 
-        // Debug log
-        System.out.println("Generating report -> time: " + time + ", type: " + type + ", value: " + value + ", branchId: " + branchId);
+public void getPurchaseReport(RoutingContext ctx) {
 
-        service.getReport(time, type, value, branchId)
-                .onSuccess(result ->
-                        ctx.response()
-                                .putHeader("Content-Type", "application/json")
-                                .end(result.encode())
-                )
-                .onFailure(err ->
-                        ctx.response()
-                                .setStatusCode(500)
-                                .end(new JsonObject().put("error", err.getMessage()).encode())
-                );
+    String time = ctx.request().getParam("time");
+    String value = ctx.request().getParam("value");
+    // Integer branchId = ctx.user().principal().getInteger("branchId");
+    Integer branchId = getBranchId(ctx);
+
+
+    service.getPurchaseReport(time, value, branchId)
+        .onSuccess(res -> ctx.json(res))
+        .onFailure(err -> {
+            err.printStackTrace();
+            ctx.response()
+                .setStatusCode(500)
+                .end(err.getMessage());
+        });
+}
+
+
+  public void getProfit(RoutingContext ctx) {
+
+    String time = ctx.request().getParam("time");
+    String value = ctx.request().getParam("value");
+
+    if (time == null || value == null) {
+        ctx.response()
+            .setStatusCode(400)
+            .end("Missing time or value parameter");
+        return;
     }
+
+    Integer branchId = ctx.user().principal().getInteger("branchId");
+
+    service.getProfitReport(time, value, branchId)
+        .onSuccess(ctx::json)
+        .onFailure(err -> {
+            err.printStackTrace();
+            ctx.response()
+                .setStatusCode(500)
+                .end(err.getMessage());
+        });
+}
+
+
+    private Integer getBranchId(RoutingContext ctx) {
+        String branchParam = ctx.request().getParam("branchId");
+        return branchParam != null ? Integer.valueOf(branchParam) : null;
+    }
+
+   
+
 }

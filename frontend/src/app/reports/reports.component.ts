@@ -4,23 +4,60 @@ import { FormsModule } from '@angular/forms';
 import { SalesService } from '../services/sales.service';
 import { AuthService } from '../services/auth.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+//import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 
-  export interface Report {
-  // Common fields
-  item?: string;        // Item name
-  qty?: number;         // Quantity sold/purchased
-  unit?: string;        // Unit of measurement
-  unitPrice?: number;   // Price per unit
-  totalPrice?: number;  // Total price (qty * unitPrice)
-  waiter?: string;      // Only for sales
-  timestamp?: string;   // Date/time of sale or purchase
 
-  // Optional aggregate/profit fields
-  sales?: number;       // Total sales (for profit report)
-  purchases?: number;   // Total purchases (for profit report)
-  profit?: number;      // Profit (for profit report)
+
+export interface Report {
+  item?: string;
+  qty?: number;
+  unit?: string;
+  unitPrice?: number;
+  totalPrice?: number;
+  waiter?: string;
+  timestamp?: string;
+  sales?: number;
+  purchases?: number;
+  profit?: number;
 }
+interface PurchaseRow {
+  id: number;
+  purchaseDate: string;
+  productId: number;
+  item?: string;
+  quantity: number;
+  unitPrice: number;
+  totalCost: number;
+  status: 'PENDING' | 'APPROVED' | 'DECLINED';
+  approvedBy?: number;
+  approvedByName?: string;
+  branchId?: number;
+}
+interface PurchaseRow {
+  item?: string;
+  qty: number;
+  unit: string;
+  unitPrice: number;
+}
+
+
+interface SalesRow {
+  item: string;
+  qty: number;
+  unit: string;
+  unitPrice: number;
+  totalPrice: number;
+  waiter: string;
+  timestamp: string;
+}
+
+
 interface Branch {
   id: number;
   name: string;
@@ -34,10 +71,8 @@ interface Branch {
   styleUrls: ['./reports.component.css']
 })
 export class ReportsComponent implements OnInit {
+  
 
-  // =====================
-  // FILTER STATE
-  // =====================
   selectedTime: 'daily' | 'monthly' | 'yearly' = 'daily';
   selectedReport: 'sales' | 'purchases' | 'profit' = 'sales';
 
@@ -45,87 +80,82 @@ export class ReportsComponent implements OnInit {
   filterMonth = new Date().toISOString().substring(0, 7);
   filterYear = new Date().getFullYear();
 
-  // Branch dropdown for super manager
+  salesRows: SalesRow[] = [];
+purchaseRows: PurchaseRow[] = [];
+
   branches: Branch[] = [];
   selectedBranchId?: number;
-  reports: Report[] = [];
   isSuperManager = false;
-  salesRows: any[] = [];
-  purchaseRows: any[] = [];
+
+  
   totalSales = 0;
   totalPurchases = 0;
   profit = 0;
+
   loading = false;
   error = '';
+
   constructor(
     private reportService: SalesService,
     private authService: AuthService,
-    private http:HttpClient
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     const user = this.authService.getUser();
-  this.isSuperManager = user?.role === 'SUPER_MANAGER';
+    this.isSuperManager = user?.role === 'SUPER_MANAGER';
 
-  if (this.isSuperManager) {
-    // Super manager selects branch
-    this.loadBranches();
-  } else {
-    // Branch manager fixed to their branch
-    this.selectedBranchId = user?.branchId;
-  }
+    if (this.isSuperManager) this.loadBranches();
+    else this.selectedBranchId = user?.branchId;
 
     this.loadReport();
   }
 
-  // =====================
-  // LOAD BRANCHES
-  // =====================
   loadBranches() {
     this.http.get<Branch[]>('http://localhost:8080/api/branches')
       .subscribe(data => this.branches = data);
   }
 
-  // =====================
-  // LOAD REPORT
-  // =====================
- loadReport(): void {
-  this.loading = true;
-  this.error = '';
+  loadReport(): void {
+    this.loading = true;
+    this.error = '';
 
-  // Ensure value is always a valid date string
-  const value =
-    this.selectedTime === 'daily'
-      ? this.filterDate
-      : this.selectedTime === 'monthly'
-        ? this.filterMonth + '-01'
-        : this.filterYear.toString() + '-01-01';
+    const value =
+      this.selectedTime === 'daily' ? this.filterDate :
+      this.selectedTime === 'monthly' ? this.filterMonth + '-01' :
+      this.filterYear.toString() + '-01-01';
 
-  this.reportService
-    .getReport(this.selectedTime, this.selectedReport, value, this.selectedBranchId)
-    .subscribe({
+    // Call the appropriate API based on selectedReport
+    let request$;
+
+    if (this.selectedReport === 'sales') {
+      request$ = this.reportService.getSales(this.selectedTime, value, this.selectedBranchId);
+    } else if (this.selectedReport === 'purchases') {
+      request$ = this.reportService.getPurchases(this.selectedTime, value, this.selectedBranchId);
+    } else {
+      request$ = this.reportService.getProfit(this.selectedTime, value, this.selectedBranchId);
+    }
+
+    request$.subscribe({
       next: res => {
         this.loading = false;
         this.salesRows = [];
         this.purchaseRows = [];
+        this.totalSales = 0;
+        this.totalPurchases = 0;
+        this.profit = 0;
 
         if (this.selectedReport === 'sales') {
           this.salesRows = res.rows || [];
-          this.totalSales = this.salesRows.reduce((sum, r) => sum + (r.totalPrice || 0), 0);
-        }
-
-        if (this.selectedReport === 'purchases') {
+          this.totalSales = res.totalSales || 0;
+        } else if (this.selectedReport === 'purchases') {
           this.purchaseRows = res.rows || [];
-          this.totalPurchases = this.purchaseRows.reduce(
-            (sum, r) => sum + ((r.qty || 0) * (r.unitPrice || 0)),
-            0
-          );
-        }
+          this.totalPurchases = res.totalPurchases || 0;
+        } else if (this.selectedReport === 'profit') {
+          this.totalSales = res.totalSales;
+this.totalPurchases = res.totalPurchases;
+this.profit = res.profit;
 
-        if (this.selectedReport === 'profit') {
-          this.totalSales = res.sales || 0;
-          this.totalPurchases = res.purchases || 0;
-          this.profit = res.profit || 0;
         }
       },
       error: err => {
@@ -134,16 +164,112 @@ export class ReportsComponent implements OnInit {
         if (err.status === 401) this.authService.logout();
       }
     });
+  }
+
+ download(type: 'pdf' | 'xls'): void {
+  if (this.selectedReport === 'sales') {
+    if (type === 'xls') this.exportSalesToExcel();
+    else this.exportSalesToPDF();
+  } else if (this.selectedReport === 'purchases') {
+    if (type === 'xls') this.exportPurchaseToExcel();
+    else this.exportPurchaseToPDF();
+  } else {
+    if (type === 'xls') this.exportProfitToExcel();
+    else this.exportProfitToPDF();
+  }
+}
+
+/* ------------------ SALES EXPORT ------------------ */
+exportSalesToExcel() {
+  const ws = XLSX.utils.json_to_sheet(this.salesRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sales");
+  const fileName = `Sales_Report_${this.selectedTime}_${new Date().getTime()}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
+
+exportSalesToPDF() {
+  const doc = new jsPDF();
+
+  autoTable(doc, {
+    head: [[
+      'Item',
+      'Qty',
+      'Unit',
+      'Unit Price',
+      'Total Price',
+      'Waiter',
+      'Timestamp'
+    ]],
+    body: this.salesRows.map(r => [
+      r.item,
+      r.qty,
+      r.unit,
+      r.unitPrice,
+      r.totalPrice,
+      r.waiter,
+      r.timestamp
+    ]),
+  });
+
+  doc.save(`Sales_Report_${this.selectedTime}.pdf`);
 }
 
 
- 
+/* ------------------ PURCHASE EXPORT ------------------ */
+exportPurchaseToExcel() {
+  const ws = XLSX.utils.json_to_sheet(this.purchaseRows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Purchases");
+  XLSX.writeFile(wb, `Purchases_Report_${this.selectedTime}.xlsx`);
+}
+
+exportPurchaseToPDF() {
+  const doc = new jsPDF();
+
+  autoTable(doc, {
+    head: [['Item', 'Quantity', 'Unit Price', 'Total Cost']],
+    body: this.purchaseRows.map(r => [
+      r.item ?? '',
+      r.quantity ?? 0,
+      r.unitPrice ?? 0,
+      r.totalCost ?? 0
+    ]),
+  });
+
+  doc.save(`Purchase_Report_${this.selectedTime}.pdf`);
+}
 
 
-  // =====================
-  // DOWNLOAD
-  // =====================
-  download(type: 'pdf' | 'xls'): void {
-    alert(`Download ${type.toUpperCase()} report`);
-  }
+
+/* ------------------ PROFIT EXPORT ------------------ */
+exportProfitToExcel() {
+  const data = [
+    { Metric: "Total Sales", Value: this.totalSales },
+    { Metric: "Total Purchases", Value: this.totalPurchases },
+    { Metric: "Profit", Value: this.profit },
+  ];
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Profit");
+  XLSX.writeFile(wb, `Profit_Report_${this.selectedTime}.xlsx`);
+}
+
+exportProfitToPDF() {
+  const doc = new jsPDF();
+
+  autoTable(doc, {
+    head: [['Metric', 'Value']],
+    body: [
+      ['Total Sales', this.totalSales],
+      ['Total Purchases', this.totalPurchases],
+      ['Profit', this.profit],
+    ],
+  });
+
+  doc.save(`Profit_Report_${this.selectedTime}.pdf`);
+}
+
+
 }

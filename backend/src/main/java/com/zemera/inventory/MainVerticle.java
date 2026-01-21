@@ -99,9 +99,7 @@ public class MainVerticle extends AbstractVerticle {
         StockRepository stockRepo = new StockRepository(client);
         StockService stockService = new StockService(stockRepo);
         StockHandler stockHandler = new StockHandler(stockService);
-
-
-
+        
         // Auth
         JWTAuthHandler jwtAuthHandler = JWTAuthHandler.create(jwtAuth);
         AuthRepository authRepo = new AuthRepository(client);
@@ -132,18 +130,14 @@ public class MainVerticle extends AbstractVerticle {
         ReportsService reportService = new ReportsService(reportRepo);
         ReportsHandler handler = new ReportsHandler(reportService);
 
-router.get("/api/reports")
-      .handler(jwtAuthHandler) // injects ctx.get("user")
-      .handler(handler::getReports);
+        router.get("/api/reports/sales").handler(jwtAuthHandler).handler(handler::getSales);
+        router.get("/api/reports/purchases").handler(jwtAuthHandler).handler(handler::getPurchaseReport);
+        router.get("/api/reports/profit").handler(jwtAuthHandler).handler(handler::getProfit);
 
 
-
-
-       
         // branch routes
         router.get("/api/branches").handler(branchHandler::getAllBranches);
         router.post("/api/branches").handler(branchHandler::createBranch);
-
         // product routes
         router.get("/api/products").handler(productHandler::getAllProducts);
         router.post("/api/products").handler(productHandler::createProduct);
