@@ -6,6 +6,10 @@
     <input type="text" [(ngModel)]="waiterName" />
   </label>
 
+  <button type="button" class="add-item" (click)="addRow()">
+    + Add item
+  </button>
+
   <table>
     <thead>
       <tr>
@@ -86,38 +90,42 @@
   </button>
 
   <!-- PRINT CONFIRMATION -->
-  <div class="modal-backdrop" *ngIf="ticket">
+  <div class="modal-backdrop" *ngIf="showPrintModal">
     <div class="modal">
       <h3>Print Order Ticket?</h3>
-      <button class="primary" (click)="confirmPrint()">Print</button>
-      <button class="ghost" (click)="cancelPrint()">Cancel</button>
+
+      <!-- PREVIEW INSIDE POPUP -->
+      <div id="receipt">
+        <div class="center">
+          <h3>Zemera Cafe</h3>
+          <p>Order #{{ ticket.orderId }}</p>
+        </div>
+
+        <hr />
+
+        <p>Date: {{ ticket.createdAt | date:'short' }}</p>
+        <p>Waiter: {{ ticket.waiterName }}</p>
+
+        <hr />
+
+        <table class="receipt-table">
+          <tr *ngFor="let item of ticket.items">
+            <td class="left">{{ item.productName }}</td>
+            <td class="center">{{ item.quantity }} x {{ item.unitPrice }}</td>
+            <td class="right">{{ item.lineTotal }}</td>
+          </tr>
+        </table>
+
+        <hr />
+
+        <p class="total">TOTAL: {{ ticket.totalAmount | currency:'ETB' }}</p>
+        <p class="center">Thank you!</p>
+      </div>
+
+      <div class="modal-buttons">
+  <button class="primary" (click)="confirmPrint()">Print</button>
+  <button class="ghost" (click)="cancelPrint()">Cancel</button>
+</div>
     </div>
   </div>
 </section>
-
-<div id="receipt" class="print-only" *ngIf="ticket">
-  <div class="center">
-    <h3>Zemera Cafe</h3>
-    <p>Order #{{ ticket.orderId }}</p>
-  </div>
-
-  <hr />
-
-  <p>Date: {{ ticket.createdAt | date:'short' }}</p>
-  <p>Waiter: {{ ticket.waiterName }}</p>
-
-  <hr />
-
-  <table class="receipt-table">
-    <tr *ngFor="let item of ticket.items">
-      <td>{{ item.productName }}</td>
-      <td>{{ item.quantity }} x {{ item.unitPrice }}</td>
-      <td>{{ item.lineTotal | currency:'ETB' }}</td>
-    </tr>
-  </table>
-
-  <hr />
-
-  <p class="total">TOTAL: {{ ticket.totalAmount | currency:'ETB' }}</p>
-  <p class="center">Thank you!</p>
-</div>

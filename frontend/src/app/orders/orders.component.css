@@ -46,13 +46,10 @@ input, select {
    PRINT RULES (FINAL)
 ========================= */
 @media print {
-
-  /* hide everything by default */
   .no-print {
     display: none !important;
   }
 
-  /* show receipt ONLY */
   .print-only {
     display: block !important;
   }
@@ -71,3 +68,108 @@ input, select {
     size: auto;
   }
 }
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.receipt-table td {
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.left {
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+.total {
+  font-weight: bold;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.center {
+  text-align: center;
+}
+
+.add-item {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-item:hover {
+  background: #1d4ed8;
+}
+
+/* Popup styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 320px;
+  max-width: 90%;
+}
+#receipt {
+  width: 280px; /* 58mm ~ 280px */
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  margin: 0 auto;
+}
+
+@media print {
+  #receipt {
+    width: 58mm;
+  }
+}
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+@media print {
+
+  /* hide everything */
+  body * {
+    visibility: hidden;
+  }
+
+  /* show only receipt */
+  #receipt, #receipt * {
+    visibility: visible;
+  }
+
+  /* position receipt */
+  #receipt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 58mm;
+    margin: 0;
+    padding: 0;
+  }
+}
+

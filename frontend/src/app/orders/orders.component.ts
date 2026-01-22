@@ -3,9 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StockService } from '../services/stock.service';
 import { OrderService } from '../services/order.service';
-import { Stock } from '../model/stock.model';
 import { StockView } from '../model/stockView.model';
-import { OrderItem, OrderSource } from '../model/order.model';
+import { OrderItem } from '../model/order.model';
 
 @Component({
   selector: 'app-orders',
@@ -22,7 +21,8 @@ export class OrdersComponent implements OnInit {
 
   loading = false;
   error = '';
-  ticket: any | null = null;
+  ticket: any = null;
+  showPrintModal = false;
 
   constructor(
     private stockService: StockService,
@@ -43,7 +43,7 @@ export class OrdersComponent implements OnInit {
 
   addRow() {
     this.items.push({
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       source: 'STOCK',
       productName: '',
       unit: '',
@@ -76,7 +76,7 @@ export class OrdersComponent implements OnInit {
     item.productId = stock.productId;
     item.availableStock = stock.quantity;
     item.unit = stock.unit;
-    item.unitPrice = 0; // price comes from backend/menu later
+    item.unitPrice = 0;
   }
 
   itemTotal(item: OrderItem): number {
@@ -90,6 +90,7 @@ export class OrdersComponent implements OnInit {
   submitOrder() {
     this.error = '';
     this.ticket = null;
+    this.showPrintModal = false;
 
     if (!this.waiterName.trim()) {
       this.error = 'Waiter name is required';
@@ -120,20 +121,28 @@ export class OrdersComponent implements OnInit {
     this.loading = true;
 
     this.orderApi.createOrder({
-  waiterName: this.waiterName,
-  items: this.items.map(i => ({
-    productId: i.productId,
-    productName: i.productName,
-    quantity: i.quantity,
-    unit: i.unit,
-    unitPrice: i.unitPrice
-  }))
-})
-.subscribe({
+      waiterName: this.waiterName,
+      items: this.items.map(i => ({
+        productId: i.productId,
+        productName: i.productName,
+        quantity: i.quantity,
+        unit: i.unit,
+        unitPrice: i.unitPrice
+      }))
+    })
+    .subscribe({
       next: (res: any) => {
-        this.ticket = res;
+        this.ticket = {
+          orderId: res.orderId,
+          waiterName: res.waiterName,
+          createdAt: res.createdAt || new Date().toISOString(),
+          items: res.items || [],
+          totalAmount: res.totalAmount || this.total
+        };
+
+        this.showPrintModal = true;
         this.loading = false;
-        this.loadStock(); // refresh after deduction
+        this.loadStock();
         this.reset();
       },
       error: (err: any) => {
@@ -142,17 +151,19 @@ export class OrdersComponent implements OnInit {
       }
     });
   }
+
   reset() {
     this.items = [];
     this.addRow();
   }
-  confirmPrint() {
-  window.print();
-  this.ticket = null; // close modal after printing
-}
-
-cancelPrint() {
-  this.ticket = null; // close modal without printing
-}
   
+
+  confirmPrint() {
+    window.print();
+    this.showPrintModal = false;
+  }
+
+  cancelPrint() {
+    this.showPrintModal = false;
+  }
 }

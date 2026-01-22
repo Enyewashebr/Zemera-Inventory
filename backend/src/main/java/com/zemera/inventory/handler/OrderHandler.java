@@ -45,20 +45,48 @@ public class OrderHandler {
         items.add(item);
     }
 
-    orderService.createOrder(branchId, waiterName, items)
-        .onSuccess(orderId -> {
-            ctx.json(new JsonObject()
-                .put("orderId", orderId)
-                .put("waiterName", waiterName)
-                .put("items", items)
+//     orderService.createOrder(branchId, waiterName, items)
+//         .onSuccess(orderId -> {
+//             ctx.json(new JsonObject()
+//                 .put("orderId", orderId)
+//                 .put("waiterName", waiterName)
+//                 .put("items", items)
+//             );
+//         })
+//         .onFailure(err -> {
+//            ctx.json(new JsonObject()
+//     .put("message", "Failed to create order")
+//     .put("error", err.getMessage())
+// );
+//         });
+orderService.createOrder(branchId, waiterName, items)
+    .onSuccess(orderId -> {
+
+        double total = items.stream()
+            .mapToDouble(i -> i.getQuantity() * i.getUnitPrice())
+            .sum();
+
+        JsonArray receiptItems = new JsonArray();
+
+        for (OrderItem i : items) {
+            receiptItems.add(new JsonObject()
+                .put("productName", i.getProductName())
+                .put("quantity", i.getQuantity())
+                .put("unit", i.getUnit())
+                .put("unitPrice", i.getUnitPrice())
+                .put("lineTotal", i.getQuantity() * i.getUnitPrice())
             );
-        })
-        .onFailure(err -> {
-           ctx.json(new JsonObject()
-    .put("message", "Failed to create order")
-    .put("error", err.getMessage())
-);
-        });
+        }
+
+        ctx.json(new JsonObject()
+            .put("orderId", orderId)
+            .put("waiterName", waiterName)
+            .put("createdAt", java.time.LocalDateTime.now())
+            .put("currency", "ETB")
+            .put("totalAmount", total)
+            .put("items", receiptItems)
+        );
+    });
 }
 
     /* ==========================
