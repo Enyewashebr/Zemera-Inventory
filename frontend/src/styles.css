@@ -65,6 +65,36 @@
   }
 }
 
+/* Global responsive utilities */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+/* Ensure touch targets are at least 44px */
+button, .nav-item, input, select {
+  min-height: 44px;
+}
+
+input, select {
+  font-size: 16px; /* Prevent zoom on iOS */
+}
+
 
 
 

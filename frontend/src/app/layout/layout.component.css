@@ -37,6 +37,28 @@
   gap: 0.75rem;
 }
 
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 0.5rem;
+}
+
+.hamburger-line {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #0f172a;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
 .logo-dot {
   width: 36px;
   height: 36px;
@@ -221,6 +243,21 @@
   font-size: 0.92rem;
 }
 
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9;
+}
+
+.mobile-overlay.active {
+  display: block;
+}
+
 .content {
   padding: 1.75rem;
   display: flex;
@@ -235,32 +272,65 @@
 }
 
 @media (max-width: 860px) {
+  .hamburger {
+    display: flex;
+  }
+
   .layout {
     grid-template-columns: 1fr;
   }
 
   .sidebar {
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    z-index: 10;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    border-right: 1px solid #e5e7eb;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .sidebar.mobile-open {
+    display: flex;
+    transform: translateX(0);
   }
 
   .nav-list {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
   }
 }
 
 @media (max-width: 640px) {
   .top-bar {
-    grid-template-columns: 1fr;
-    text-align: left;
+    grid-template-columns: auto 1fr;
+    padding: 0.75rem 1rem;
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .system-name {
+    font-size: 0.9rem;
+  }
+
+  .role-pill {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.5rem;
   }
 
   .datetime {
-    text-align: left;
+    display: none;
+  }
+
+  .user {
+    display: none;
   }
 
   .content {

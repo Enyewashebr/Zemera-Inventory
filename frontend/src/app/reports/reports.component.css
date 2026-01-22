@@ -80,3 +80,43 @@ button {
 button:hover {
   background-color: #eee;
 }
+
+@media (max-width: 768px) {
+  .reports {
+    padding: 0.75rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .profit-grid {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .download-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .download-bar button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-wrapper {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  .profit-card {
+    padding: 0.75rem;
+  }
+}

@@ -10,73 +10,75 @@
     + Add item
   </button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Source</th>
-        <th>Product</th>
-        <th>Stock</th>
-        <th>Qty</th>
-        <th>Unit</th>
-        <th>Price</th>
-        <th>Total</th>
-        <th></th>
-      </tr>
-    </thead>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Product</th>
+          <th>Stock</th>
+          <th>Qty</th>
+          <th>Unit</th>
+          <th>Price</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
 
-    <tbody>
-      <tr *ngFor="let item of items">
-        <td>
-          <select [(ngModel)]="item.source" (change)="onSourceChange(item)">
-            <option value="STOCK">From stock</option>
-            <option value="KITCHEN">From kitchen</option>
-          </select>
-        </td>
+      <tbody>
+        <tr *ngFor="let item of items">
+          <td>
+            <select [(ngModel)]="item.source" (change)="onSourceChange(item)">
+              <option value="STOCK">From stock</option>
+              <option value="KITCHEN">From kitchen</option>
+            </select>
+          </td>
 
-        <td>
-          <select
-            *ngIf="item.source === 'STOCK'"
-            [(ngModel)]="item.productName"
-            (change)="onStockProductChange(item)"
-          >
-            <option value="">Select</option>
-            <option *ngFor="let s of stockItems" [value]="s.productName">
-              {{ s.productName }}
-            </option>
-          </select>
+          <td>
+            <select
+              *ngIf="item.source === 'STOCK'"
+              [(ngModel)]="item.productName"
+              (change)="onStockProductChange(item)"
+            >
+              <option value="">Select</option>
+              <option *ngFor="let s of stockItems" [value]="s.productName">
+                {{ s.productName }}
+              </option>
+            </select>
 
-          <input
-            *ngIf="item.source === 'KITCHEN'"
-            type="text"
-            placeholder="Food name"
-            [(ngModel)]="item.productName"
-          />
-        </td>
+            <input
+              *ngIf="item.source === 'KITCHEN'"
+              type="text"
+              placeholder="Food name"
+              [(ngModel)]="item.productName"
+            />
+          </td>
 
-        <td class="numeric">
-          {{ item.source === 'STOCK' ? item.availableStock : '—' }}
-        </td>
+          <td class="numeric">
+            {{ item.source === 'STOCK' ? item.availableStock : '—' }}
+          </td>
 
-        <td>
-          <input type="number" min="1" [(ngModel)]="item.quantity" />
-        </td>
+          <td>
+            <input type="number" min="1" [(ngModel)]="item.quantity" />
+          </td>
 
-        <td>{{ item.unit || '—' }}</td>
+          <td>{{ item.unit || '—' }}</td>
 
-        <td>
-          <input type="number" min="0" [(ngModel)]="item.unitPrice" />
-        </td>
+          <td>
+            <input type="number" min="0" [(ngModel)]="item.unitPrice" />
+          </td>
 
-        <td class="numeric">
-          {{ itemTotal(item) | currency:'ETB' }}
-        </td>
+          <td class="numeric">
+            {{ itemTotal(item) | currency:'ETB' }}
+          </td>
 
-        <td>
-          <button (click)="removeRow(item.id)">✕</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <td>
+            <button (click)="removeRow(item.id)">✕</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="summary">
     <strong>Total:</strong>

@@ -79,3 +79,26 @@ th {
   color: #6b7280;
   font-style: italic;
 }
+
+@media (max-width: 640px) {
+  .stock {
+    padding: 1rem 0.75rem;
+  }
+
+  .header h2 {
+    font-size: 1.2rem;
+  }
+
+  .table-wrapper {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  select {
+    min-width: 100%;
+  }
+}

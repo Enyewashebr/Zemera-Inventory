@@ -23,6 +23,8 @@ form input {
   margin-bottom: 10px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  min-height: 44px;
+  font-size: 16px;
 }
 
 button {
@@ -58,4 +60,31 @@ th, td {
 .error {
   color: #e74c3c;
   margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .branch-management {
+    padding: 1rem;
+  }
+
+  .form-card, .list-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .branch-management {
+    padding: 0.75rem;
+  }
+
+  .list-card {
+    overflow-x: auto;
+    margin: 0 -0.75rem 1rem;
+    padding: 0.75rem;
+  }
+
+  table {
+    min-width: 500px;
+  }
 }

@@ -6,6 +6,12 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
+  min-width: 600px;
+}
+
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 th, td {
@@ -19,6 +25,8 @@ th, td {
 
 input, select {
   padding: 0.3rem;
+  min-height: 36px;
+  font-size: 14px;
 }
 
 .summary {
@@ -149,6 +157,40 @@ input, select {
   display: flex;
   justify-content: space-between;
   margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .orders {
+    padding: 0.75rem;
+  }
+
+  .table-container {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  label {
+    margin-bottom: 12px;
+  }
+
+  input, select {
+    width: 100%;
+  }
+
+  .modal {
+    width: 95%;
+    max-width: none;
+    margin: 1rem;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-buttons button {
+    width: 100%;
+  }
 }
 @media print {
 

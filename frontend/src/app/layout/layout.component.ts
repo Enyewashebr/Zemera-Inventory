@@ -16,6 +16,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   formattedDate = '';
   formattedTime = '';
   private timer!: number;
+  isMobileMenuOpen = false;
 
   constructor(public auth: AuthService, private router: Router) {} // <- inject Router
 
@@ -34,6 +35,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
       return [...this.baseNavItems, { path: '/users', label: 'Users' }, { path: '/branches', label: 'Branches' }, { path: '/create-user', label: 'Add User' }];
     }
     return this.baseNavItems;
+  }
+
+  // ==========================
+  // MOBILE MENU
+  // ==========================
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
   }
 
   // ==========================
