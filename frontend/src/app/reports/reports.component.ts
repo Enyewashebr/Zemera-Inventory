@@ -59,7 +59,6 @@ export class ReportsComponent implements OnInit {
 
   selectedTime: 'daily' | 'monthly' | 'yearly' = 'daily';
   selectedReport: 'sales' | 'purchases' | 'profit' = 'sales';
-
   filterDate = new Date().toISOString().substring(0, 10);
   filterMonth = new Date().toISOString().substring(0, 7);
   filterYear = new Date().getFullYear();
