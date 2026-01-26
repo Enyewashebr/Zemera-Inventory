@@ -7,12 +7,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+
 //import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-
-
 
 export interface Report {
   item?: string;
@@ -27,23 +24,10 @@ export interface Report {
   profit?: number;
 }
 interface PurchaseRow {
-  id: number;
-  purchaseDate: string;
-  productId: number;
   item?: string;
   quantity: number;
   unitPrice: number;
   totalCost: number;
-  status: 'PENDING' | 'APPROVED' | 'DECLINED';
-  approvedBy?: number;
-  approvedByName?: string;
-  branchId?: number;
-}
-interface PurchaseRow {
-  item?: string;
-  qty: number;
-  unit: string;
-  unitPrice: number;
 }
 
 
@@ -201,15 +185,16 @@ exportSalesToPDF() {
       'Waiter',
       'Timestamp'
     ]],
-    body: this.salesRows.map(r => [
-      r.item,
-      r.qty,
-      r.unit,
-      r.unitPrice,
-      r.totalPrice,
-      r.waiter,
-      r.timestamp
+   body: this.salesRows.map(r => [
+      r.item ?? '',
+      r.qty ?? 0,
+      r.unit ?? '',
+      r.unitPrice ?? 0,
+      r.totalPrice ?? 0,
+      r.waiter ?? '',
+      r.timestamp ? new Date(r.timestamp).toLocaleString() : ''
     ]),
+  
   });
 
   doc.save(`Sales_Report_${this.selectedTime}.pdf`);
@@ -229,7 +214,7 @@ exportPurchaseToPDF() {
 
   autoTable(doc, {
     head: [['Item', 'Quantity', 'Unit Price', 'Total Cost']],
-    body: this.purchaseRows.map(r => [
+     body: this.purchaseRows.map(r => [
       r.item ?? '',
       r.quantity ?? 0,
       r.unitPrice ?? 0,
@@ -262,9 +247,9 @@ exportProfitToPDF() {
   autoTable(doc, {
     head: [['Metric', 'Value']],
     body: [
-      ['Total Sales', this.totalSales],
-      ['Total Purchases', this.totalPurchases],
-      ['Profit', this.profit],
+      ['Total Sales', this.totalSales ?? 0],
+      ['Total Purchases', this.totalPurchases ?? 0],
+      ['Profit', this.profit ?? 0],
     ],
   });
 
