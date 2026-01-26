@@ -4,6 +4,7 @@
   publish = "dist/frontend"
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
+from = "/login"
+to = "/frontend/src/index.html"
 status = 200
+force = true
