@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Maven
+target/
+
+# Gradle
+build/
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
