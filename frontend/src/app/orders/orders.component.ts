@@ -5,6 +5,7 @@ import { StockService } from '../services/stock.service';
 import { OrderService } from '../services/order.service';
 import { StockView } from '../model/stockView.model';
 import { OrderItem } from '../model/order.model';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-orders',
@@ -26,7 +27,8 @@ export class OrdersComponent implements OnInit {
 
   constructor(
     private stockService: StockService,
-    private orderApi: OrderService
+    private orderApi: OrderService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -34,12 +36,29 @@ export class OrdersComponent implements OnInit {
     this.addRow();
   }
 
+  // loadStock() {
+  //   this.stockService.getMyStock().subscribe({
+  //     next: data => (this.stockItems = data),
+  //     error: () => (this.error = 'Failed to load stock')
+  //   });
+  // }
+
   loadStock() {
-    this.stockService.getMyStock().subscribe({
-      next: data => (this.stockItems = data),
-      error: () => (this.error = 'Failed to load stock')
-    });
+  const token = this.authService.getToken();
+  if (!token) {
+    this.error = 'You are not logged in';
+    return;
   }
+
+  this.stockService.getMyStock().subscribe({
+    next: data => (this.stockItems = data),
+    error: err => {
+      console.error(err);
+      this.error = 'Failed to load stock';
+    }
+  });
+}
+
 
   addRow() {
     this.items.push({
