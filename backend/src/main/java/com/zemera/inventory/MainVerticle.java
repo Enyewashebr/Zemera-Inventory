@@ -44,6 +44,11 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 
 public class MainVerticle extends AbstractVerticle {
+    private String env(String key) {
+    String value = System.getenv(key);
+    if (value == null) value = Dotenv.load().get(key);
+    return value;
+}
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -55,9 +60,13 @@ public class MainVerticle extends AbstractVerticle {
 
         Router router = Router.router(vertx);
 // at the top of start()
-    Dotenv dotenv = Dotenv.load();
+
+
+    // Dotenv dotenv = Dotenv.load();
         //  JWT Auth setup
-        String encodedSecret = Base64.getEncoder().encodeToString(dotenv.get("JWT_SECRET").getBytes());
+       String jwtSecret = env("JWT_SECRET");
+String encodedSecret = Base64.getEncoder()
+    .encodeToString(jwtSecret.getBytes());
 
 
         JWTAuth jwtAuth = JWTAuth.create(vertx,
@@ -186,12 +195,27 @@ public class MainVerticle extends AbstractVerticle {
         // router.get("/api/reports/purchase").handler(jwtAuthHandler).handler(reportHandler::purchase);
         // router.get("/api/reports/profit").handler(jwtAuthHandler).handler(reportHandler::profit);
         //  Start HTTP server
-      int port = Integer.parseInt(dotenv.get("PORT", "8080"));
+    //   int port = Integer.parseInt(dotenv.get("PORT"));
+    
+
+
+
+     String portStr = System.getenv("PORT");
+
+if (portStr == null) {
+    portStr = "8080";
+
+    throw new RuntimeException("PORT is missing");
+}
+
+int port = Integer.parseInt(portStr);
+
 vertx.createHttpServer()
     .requestHandler(router)
     .listen(port, http -> {
         if (http.succeeded()) {
             System.out.println("HTTP server started on port " + port);
+            
         } else {
             startPromise.fail(http.cause());
         }
