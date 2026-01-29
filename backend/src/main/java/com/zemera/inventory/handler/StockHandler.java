@@ -50,7 +50,6 @@ public class StockHandler {
  public void getMyStock(RoutingContext ctx) {
 
     Integer branchId = ctx.user().principal().getInteger("branchId");
-
     stockService.getStockViewByBranch(branchId)
         .onSuccess(list -> ctx.json(list))
         .onFailure(err ->
