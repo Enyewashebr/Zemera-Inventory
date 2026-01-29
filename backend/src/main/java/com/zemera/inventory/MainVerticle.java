@@ -37,6 +37,10 @@ import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.sqlclient.Pool;
 import java.util.Base64;
+import io.github.cdimascio.dotenv.Dotenv;
+
+
+
 
 
 public class MainVerticle extends AbstractVerticle {
@@ -50,9 +54,11 @@ public class MainVerticle extends AbstractVerticle {
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         Router router = Router.router(vertx);
-
+// at the top of start()
+    Dotenv dotenv = Dotenv.load();
         //  JWT Auth setup
-        String encodedSecret = Base64.getEncoder().encodeToString("my_super_secret_key_123456".getBytes());
+        String encodedSecret = Base64.getEncoder().encodeToString(dotenv.get("JWT_SECRET").getBytes());
+
 
         JWTAuth jwtAuth = JWTAuth.create(vertx,
             new JWTAuthOptions()
@@ -65,7 +71,8 @@ public class MainVerticle extends AbstractVerticle {
 
         //  CORS configuration
         router.route().handler(
-            CorsHandler.create("http://localhost:4200")
+            CorsHandler.create("https://zemeracafe.netlify.app")
+    .addOrigin("http://localhost:4200")
                 .allowedMethod(HttpMethod.GET)
                 .allowedMethod(HttpMethod.POST)
                 .allowedMethod(HttpMethod.PUT)
@@ -142,14 +149,12 @@ public class MainVerticle extends AbstractVerticle {
         router.get("/api/products").handler(productHandler::getAllProducts);
         router.post("/api/products").handler(productHandler::createProduct);
         router.put("/api/products/:id").handler(productHandler::updateProduct);
-
         // user auth routes
         router.post("/api/auth/login").handler(userAuthHandler::loginUser);
         router.post("/api/create-user").handler(userAuthHandler::registerUser);
         router.get("/api/users").handler(userAuthHandler::getAllUsers);
         router.put("/api/users/:id").handler(userAuthHandler::updateUser);
         router.delete("/api/users/:id").handler(userAuthHandler::deleteUser);
-
         // purchase routes
         router.post("/api/purchase/create").handler(jwtAuthHandler).handler(purchaseHandler::createPurchase);
         router.get("/api/purchase/getAll").handler(purchaseHandler::getAllPurchases);
@@ -180,19 +185,18 @@ public class MainVerticle extends AbstractVerticle {
         // router.get("/api/reports/sales").handler(jwtAuthHandler).handler(reportHandler::sales);
         // router.get("/api/reports/purchase").handler(jwtAuthHandler).handler(reportHandler::purchase);
         // router.get("/api/reports/profit").handler(jwtAuthHandler).handler(reportHandler::profit);
-
-
-
         //  Start HTTP server
-        vertx.createHttpServer()
-            .requestHandler(router)
-            .listen(8080, http -> {
-                if (http.succeeded()) {
-                    System.out.println(" HTTP server started on port 8080");
-                } else {
-                    startPromise.fail(http.cause());
-                }
-            });
+      int port = Integer.parseInt(dotenv.get("PORT", "8080"));
+vertx.createHttpServer()
+    .requestHandler(router)
+    .listen(port, http -> {
+        if (http.succeeded()) {
+            System.out.println("HTTP server started on port " + port);
+        } else {
+            startPromise.fail(http.cause());
+        }
+    });
+
     }
 
     
