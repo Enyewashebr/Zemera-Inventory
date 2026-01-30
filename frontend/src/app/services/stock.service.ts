@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class StockService {
-  private baseUrl = 'http://localhost:8080/api/stock';
+  private baseUrl = 'https://zemera-inventory-1.onrender.com/api/stock';
 
   constructor(
     private http: HttpClient,

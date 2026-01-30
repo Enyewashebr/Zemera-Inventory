@@ -36,7 +36,7 @@ export class UserComponent implements OnInit {
   }
 
   loadBranches() {
-    this.http.get<{ id: number; name: string }[]>('http://localhost:8080/api/branches')
+    this.http.get<{ id: number; name: string }[]>('https://zemera-inventory-1.onrender.com/api/branches')
       .subscribe(data => {
         if (this.currentUserRole === 'SUPER_MANAGER') {
           // SUPER_MANAGER sees all branches
@@ -49,7 +49,7 @@ export class UserComponent implements OnInit {
   }
 
   loadUsers() {
-    this.http.get<any[]>('http://localhost:8080/api/users')
+    this.http.get<any[]>('https://zemera-inventory-1.onrender.com/api/users')
       .subscribe(data => this.users = data);
   }
 
@@ -96,7 +96,7 @@ export class UserComponent implements OnInit {
       branch_id: this.user.branchId
     };
 
-    this.http.put(`http://localhost:8080/api/users/${this.editingUserId}`, payload)
+    this.http.put(`https://zemera-inventory-1.onrender.com/api/users/${this.editingUserId}`, payload)
       .subscribe({
         next: () => {
           this.loadUsers();
@@ -109,7 +109,7 @@ export class UserComponent implements OnInit {
   deleteUser(id: number) {
     if (!confirm('Delete this user?')) return;
 
-    this.http.delete(`http://localhost:8080/api/users/${id}`)
+    this.http.delete(`https://zemera-inventory-1.onrender.com/api/users/${id}`)
       .subscribe({
         next: () => this.users = this.users.filter(u => u.id !== id),
         error: err => console.error('Delete failed', err)

@@ -95,7 +95,7 @@ purchaseRows: PurchaseRow[] = [];
   }
 
   loadBranches() {
-    this.http.get<Branch[]>('http://localhost:8080/api/branches')
+    this.http.get<Branch[]>('https://zemera-inventory-1.onrender.com/api/branches')
       .subscribe(data => this.branches = data);
   }
 

@@ -20,7 +20,7 @@ export interface Product {
 })
 export class ProductService {
 
-  private baseUrl = 'http://localhost:8080/api/products';
+  private baseUrl = 'https://zemera-inventory-1.onrender.com/api/products';
 
   constructor(private http: HttpClient) {}
 

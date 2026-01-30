@@ -83,7 +83,7 @@ selectedBranchId?: number;
 
 
   loadProducts() {
-    this.http.get<Product[]>('http://localhost:8080/api/products')
+    this.http.get<Product[]>('https://zemera-inventory-1.onrender.com/api/products')
       .subscribe(data => this.products = data);
   }
 
@@ -105,7 +105,7 @@ loadMyPurchases() {
   }
 
   this.http.get<Purchase[]>(
-    'http://localhost:8080/api/purchase/my',
+    'https://zemera-inventory-1.onrender.com/api/purchase/my',
     {
       headers: {
         Authorization: `Bearer ${token}`
@@ -128,7 +128,7 @@ loadMyPurchases() {
 
 
   loadPurchases() {
-    this.http.get<Purchase[]>('http://localhost:8080/api/purchase/getAll')
+    this.http.get<Purchase[]>('https://zemera-inventory-1.onrender.com/api/purchase/getAll')
       .subscribe(data => this.purchases = data);
   }
 
@@ -184,7 +184,7 @@ loadMyPurchases() {
 
   this.isSaving = true;
 
-  this.http.post('http://localhost:8080/api/purchase/create', payload, {
+  this.http.post('https://zemera-inventory-1.onrender.com/api/purchase/create', payload, {
     headers: {
       Authorization: `Bearer ${token}`, // ✅ attach JWT
       'Content-Type': 'application/json'
@@ -223,7 +223,7 @@ loadMyPurchases() {
   // SUPER MANAGER
   // ==========================
   loadBranches() {
-    this.http.get<Branch[]>('http://localhost:8080/api/branches')
+    this.http.get<Branch[]>('https://zemera-inventory-1.onrender.com/api/branches')
       .subscribe(data => this.branches = data);
   }
 
@@ -231,7 +231,7 @@ loadMyPurchases() {
   if (!this.selectedBranchId) return;
 
   this.http.get<Purchase[]>(
-    `http://localhost:8080/api/purchase/branch/${this.selectedBranchId}`
+    `https://zemera-inventory-1.onrender.com/api/purchase/branch/${this.selectedBranchId}`
   ).subscribe(data => this.purchases = data);
 }
 
@@ -247,7 +247,7 @@ loadMyPurchases() {
   if (!token) return;
 
   this.http.put(
-    `http://localhost:8080/api/purchase/${id}/approve`,
+    `https://zemera-inventory-1.onrender.com/api/purchase/${id}/approve`,
     {},
     { headers: { Authorization: `Bearer ${token}` } }
   ).subscribe({
@@ -273,7 +273,7 @@ loadMyPurchases() {
   if (!token) return;
 
   this.http.put(
-    `http://localhost:8080/api/purchase/${id}/decline`,
+    `https://zemera-inventory-1.onrender.com/api/purchase/${id}/decline`,
     { comment: 'Declined by super manager' },
     { headers: { Authorization: `Bearer ${token}` } }
   ).subscribe({

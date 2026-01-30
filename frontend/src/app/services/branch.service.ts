@@ -7,7 +7,7 @@ import { Branch } from '../model/branch.model';
   providedIn: 'root'
 })
 export class BranchService {
-  private baseUrl = 'http://localhost:8080/api/branches';
+  private baseUrl = 'https://zemera-inventory-1.onrender.com/api/branches';
 
   constructor(private http: HttpClient) {}
 

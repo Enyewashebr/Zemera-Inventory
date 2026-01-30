@@ -31,7 +31,7 @@ export interface Purchase {
 })
 export class PurchaseService {
 
-  private baseUrl = 'http://localhost:8080/api/purchase';
+  private baseUrl = 'https://zemera-inventory-1.onrender.com/api/purchase';
 
   constructor(private http: HttpClient) {}
 

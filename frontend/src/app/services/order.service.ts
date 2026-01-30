@@ -60,7 +60,7 @@ export interface OrderTicketResponse {
   providedIn: 'root'
 })
 export class OrderService {
-  private readonly baseUrl = 'http://localhost:8080/api/orders';
+  private readonly baseUrl = 'https://zemera-inventory-1.onrender.com/api/orders';
 
   constructor(
     private http: HttpClient,

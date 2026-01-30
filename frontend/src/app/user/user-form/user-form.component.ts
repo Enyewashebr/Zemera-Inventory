@@ -34,7 +34,7 @@ export class UserFormComponent implements OnInit {
   }
 
   loadBranches() {
-    this.http.get<{ id: number; name: string }[]>('http://localhost:8080/api/branches')
+    this.http.get<{ id: number; name: string }[]>('https://zemera-inventory-1.onrender.com/api/branches')
       .subscribe({
         next: data => this.branches = data,
         error: () => this.errorMessage = 'Failed to load branches'
@@ -50,7 +50,7 @@ export class UserFormComponent implements OnInit {
     this.user.branchId;   // or: this.user.branchId = null;
   }
 
-  this.http.post('http://localhost:8080/api/create-user', this.user)
+  this.http.post('https://zemera-inventory-1.onrender.com/api/create-user', this.user)
     .subscribe({
       next: () => this.router.navigate(['/users']),
       error: err => {

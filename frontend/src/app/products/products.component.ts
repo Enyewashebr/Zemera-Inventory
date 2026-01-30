@@ -36,7 +36,7 @@ interface Product {
 export class ProductsComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
-  backendUrl = 'http://localhost:8080/api/products';
+  backendUrl = 'https://zemera-inventory-1.onrender.com/api/products';
   searchTerm: string = '';
   allProducts: Product[] = [];
 
