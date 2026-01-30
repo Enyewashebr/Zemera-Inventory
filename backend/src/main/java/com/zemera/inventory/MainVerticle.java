@@ -26,6 +26,7 @@ import com.zemera.inventory.service.StockService;
 import com.zemera.inventory.util.JwtUtil;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
@@ -44,6 +45,10 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 
 public class MainVerticle extends AbstractVerticle {
+
+    public static void main(String[] args) {
+        Vertx.vertx().deployVerticle(new MainVerticle());
+    }
     private String env(String key) {
     String value = System.getenv(key);
     if (value == null) value = Dotenv.load().get(key);
@@ -205,7 +210,7 @@ String encodedSecret = Base64.getEncoder()
 if (portStr == null) {
     portStr = "8080";
 
-    throw new RuntimeException("PORT is missing");
+    // throw new RuntimeException("PORT is missing");
 }
 
 int port = Integer.parseInt(portStr);
