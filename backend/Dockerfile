@@ -18,8 +18,8 @@ WORKDIR /app
 # Copy the built JAR from build stage
 COPY --from=build /app/target/inventory-backend-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose port (will be overridden by PORT env var)
-EXPOSE 8080
+# Expose port (Render will set PORT env var, default to 10000 for free tier)
+EXPOSE 10000
 
 # Run the application
 # The PORT environment variable will be set by Render
