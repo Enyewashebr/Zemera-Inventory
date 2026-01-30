@@ -8,7 +8,7 @@ import { AuthModel } from '../model/auth.model';
 })
 export class AuthService {
 
-  private API_URL = 'http://localhost:8080/api/auth';
+  private API_URL = 'https://zemera-inventory-1.onrender.com/api/auth';
 
   private readonly STORAGE_KEY = 'auth_session';
 
