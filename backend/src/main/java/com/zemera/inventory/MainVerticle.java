@@ -142,11 +142,7 @@ String encodedSecret = Base64.getEncoder()
         BranchRepository branchRepo = new BranchRepository(client);
         BranchHandler branchHandler = new BranchHandler(branchRepo);
 
-        // Report
-        // ReportRepository reportRepo =new ReportRepository(client);
-        // ReportService reportService =new ReportService(reportRepo);
-        // ReportHandler reportHandler =new ReportHandler(reportService);
-
+        // Reports
         ReportsRepository reportRepo = new ReportsRepository(client);
         ReportsService reportService = new ReportsService(reportRepo);
         ReportsHandler handler = new ReportsHandler(reportService);
@@ -159,6 +155,8 @@ String encodedSecret = Base64.getEncoder()
         // branch routes
         router.get("/api/branches").handler(branchHandler::getAllBranches);
         router.post("/api/branches").handler(branchHandler::createBranch);
+        router.put("/api/branches/:id").handler(branchHandler::updateBranch);
+        router.delete("/api/branches/:id").handler(branchHandler::deleteBranch);
         // product routes
         router.get("/api/products").handler(productHandler::getAllProducts);
         router.post("/api/products").handler(productHandler::createProduct);
@@ -190,18 +188,7 @@ String encodedSecret = Base64.getEncoder()
         router.post("/api/orders").handler(jwtAuthHandler).handler(orderHandler::createOrder);
         router.get("/api/orders/:id").handler(jwtAuthHandler).handler(orderHandler::getOrderTicket);
 
-        // report routes
-        // router.get("/api/reports/daily-sales").handler(JWTAuthHandler.create(jwtAuth)).handler(reportHandler::dailySales);
-        // router.get("/api/reports/purchase").handler(JWTAuthHandler.create(jwtAuth)).handler(reportHandler::dailyPurchase);
-        // router.get("/api/reports/purchase/monthly").handler(JWTAuthHandler.create(jwtAuth)).handler(reportHandler::monthlyPurchase);
-        // router.get("/api/reports/profit").handler(JWTAuthHandler.create(jwtAuth)).handler(reportHandler::profit);
-
-        // router.get("/api/reports/sales").handler(jwtAuthHandler).handler(reportHandler::sales);
-        // router.get("/api/reports/purchase").handler(jwtAuthHandler).handler(reportHandler::purchase);
-        // router.get("/api/reports/profit").handler(jwtAuthHandler).handler(reportHandler::profit);
-        //  Start HTTP server
-    //   int port = Integer.parseInt(dotenv.get("PORT"));
-    
+       
 
 
 

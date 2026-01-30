@@ -65,4 +65,50 @@ public class BranchHandler {
             }
         });
     }
+
+
+    public void updateBranch(RoutingContext ctx) {
+    try {
+        Long id = Long.valueOf(ctx.pathParam("id"));
+        JsonObject body = ctx.getBodyAsJson();
+
+        if (body == null) {
+            ctx.response().setStatusCode(400).end("Invalid JSON body");
+            return;
+        }
+
+        Branch branch = new Branch();
+        branch.setName(body.getString("name"));
+        branch.setPhone(body.getString("phone"));
+
+        repo.updateBranch(id, branch)
+            .onSuccess(updated -> ctx.response()
+                    .putHeader("Content-Type", "application/json")
+                    .end(Json.encodePrettily(updated)))
+            .onFailure(err -> ctx.response()
+                    .setStatusCode(500)
+                    .end(err.getMessage()));
+
+    } catch (Exception e) {
+        ctx.response().setStatusCode(400).end("Invalid branch id");
+    }
+}
+
+    public void deleteBranch(RoutingContext ctx) {
+    try {
+        Long id = Long.valueOf(ctx.pathParam("id"));
+
+        repo.deleteBranch(id)
+            .onSuccess(v -> ctx.response()
+                    .setStatusCode(204)
+                    .end())
+            .onFailure(err -> ctx.response()
+                    .setStatusCode(500)
+                    .end(err.getMessage()));
+
+    } catch (Exception e) {
+        ctx.response().setStatusCode(400).end("Invalid branch id");
+    }
+}
+
 }

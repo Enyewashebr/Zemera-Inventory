@@ -36,15 +36,10 @@ public class BranchRepository {
                 );
             });
     }
+    
+    
 
-
-
-
-
-
-
-
-
+    // get all branches
     public Future<List<Branch>> getAllBranches() {
         String sql = "SELECT id, branch_name, phone, created_at FROM branches ORDER BY id";
         return client.query(sql).execute()
@@ -61,4 +56,59 @@ public class BranchRepository {
                 return list;
             });
     }
+
+    // update branch
+    public Future<Branch> updateBranch(Long id, Branch b) {
+
+    String sql = """
+        UPDATE branches
+        SET branch_name = $1,
+            phone = $2
+        WHERE id = $3
+        RETURNING id, branch_name, phone, created_at
+        """;
+
+    return client
+        .preparedQuery(sql)
+        .execute(io.vertx.sqlclient.Tuple.of(
+                b.getName(),
+                b.getPhone(),
+                id
+        ))
+        .map(rs -> {
+
+            // VERY IMPORTANT → handle branch not found
+            if (!rs.iterator().hasNext()) {
+                throw new RuntimeException("Branch not found");
+            }
+
+            Row row = rs.iterator().next();
+
+            return new Branch(
+                row.getInteger("id"),
+                row.getString("branch_name"),
+                row.getString("phone"),
+                row.getLocalDateTime("created_at").toString()
+            );
+        });
+}
+
+
+// delete branch
+    public Future<Void> deleteBranch(Long id) {
+
+    String sql = "DELETE FROM branches WHERE id = $1";
+
+    return client
+        .preparedQuery(sql)
+        .execute(io.vertx.sqlclient.Tuple.of(id))
+        .map(rs -> {
+
+            if (rs.rowCount() == 0) {
+                throw new RuntimeException("Branch not found");
+            }
+
+            return null;
+        });
+}
 }
