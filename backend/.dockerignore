@@ -1,0 +1,10 @@
+target/
+.git/
+.gitignore
+*.log
+hs_err_pid*.log
+replay_pid*.log
+.env
+.idea/
+.vscode/
+*.iml
