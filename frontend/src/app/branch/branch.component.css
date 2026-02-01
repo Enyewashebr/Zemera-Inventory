@@ -88,3 +88,99 @@ th, td {
     min-width: 500px;
   }
 }
+
+
+
+/* Dark background overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal card */
+.modal-card {
+  background: #ffffff;
+  width: 90%;
+  max-width: 420px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.2s ease-in-out;
+}
+
+/* Inputs */
+.modal-card input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Buttons */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-card button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.modal-card button[type="submit"] {
+  background: #2563eb;
+  color: white;
+}
+
+.modal-card button.cancel {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* Animation */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+/* Danger modal accent */
+.modal-card.danger h3 {
+  color: #dc2626;
+}
+
+.modal-card.danger p {
+  margin: 16px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+/* Delete button */
+.danger-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.danger-btn:hover {
+  background: #b91c1c;
+}

@@ -73,6 +73,7 @@ export class BranchComponent {
 
 
   editBranch(id: number) {
+    console.log('EDIT CLICKED WITH ID:', id);
     const branch = this.branches.find(x => x.id === id);
     if (!branch) return;
 
@@ -119,5 +120,36 @@ export class BranchComponent {
         error: err => console.error('Delete failed', err)
       });
   }
+
+
+  confirmDeleteId: number | null = null;
+
+askDelete(id: number) {
+  this.confirmDeleteId = id;
+}
+
+cancelDelete() {
+  this.confirmDeleteId = null;
+}
+
+confirmDelete() {
+  if (this.confirmDeleteId === null) return;
+
+  this.http
+    .delete(`https://zemera-inventory-1.onrender.com/api/branches/${this.confirmDeleteId}`)
+    .subscribe({
+      next: () => {
+        this.branches = this.branches.filter(
+          b => b.id !== this.confirmDeleteId
+        );
+        this.confirmDeleteId = null;
+      },
+      error: err => {
+        console.error('Delete failed', err);
+        this.confirmDeleteId = null;
+      }
+    });
+}
+
 
 }
