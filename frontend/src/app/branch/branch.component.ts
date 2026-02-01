@@ -73,13 +73,13 @@ export class BranchComponent {
 
 
   editBranch(id: number) {
-    const b = this.branches.find(x => x.id === id);
-    if (!b) return;
+    const branch = this.branches.find(x => x.id === id);
+    if (!branch) return;
 
     this.editingBranchId = id;
     this.branch = {
-      name: b.name,
-      phone: b.phone
+      name: branch.name,
+      phone: branch.phone
     };
   }
 

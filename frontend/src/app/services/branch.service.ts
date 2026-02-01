@@ -21,13 +21,13 @@ export class BranchService {
   getAllBranches(): Observable<Branch[]> {
     return this.http.get<Branch[]>(this.baseUrl);
   }
-// update(id: number, branch: Branch): Observable<Branch> {
-//     return this.http.put<Branch>(`${this.baseUrl}/${id}`, branch);
-//   }
+update(id: number, branch: Branch): Observable<Branch> {
+    return this.http.put<Branch>(`${this.baseUrl}/${id}`, branch);
+  }
 
-//   delete(id: number): Observable<void> {
-//     return this.http.delete<void>(`${this.baseUrl}/${id}`);
-//   }
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 
 }
   
