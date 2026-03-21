@@ -104,7 +104,9 @@ public class DatabaseConfig {
             .setDatabase(env("DB_NAME"))
             .setUser(env("DB_USER"))
             .setPassword(env("DB_PASSWORD"))
-            .setSslMode(SslMode.REQUIRE);  // 🔥 REQUIRED FOR NEON
+            .setSslMode(SslMode.REQUIRE)  // 🔥 REQUIRED FOR NEON
+            .setSsl(true)                    // ✅ ADD THIS
+            .setTrustAll(true); 
 
         PoolOptions poolOptions = new PoolOptions()
             .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
