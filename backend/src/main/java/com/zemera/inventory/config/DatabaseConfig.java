@@ -106,7 +106,8 @@ public class DatabaseConfig {
             .setPassword(env("DB_PASSWORD"))
             .setSslMode(SslMode.REQUIRE)  // 🔥 REQUIRED FOR NEON
             .setSsl(true)                    // ✅ ADD THIS
-            .setTrustAll(true); 
+            .setTrustAll(true)
+            .setHostnameVerificationAlgorithm(""); 
 
         PoolOptions poolOptions = new PoolOptions()
             .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
