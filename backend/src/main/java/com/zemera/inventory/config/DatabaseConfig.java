@@ -96,22 +96,32 @@ public class DatabaseConfig {
         return value;
     }
 
+    // public static SqlClient createClient(Vertx vertx) {
+
+    //     PgConnectOptions connectOptions = new PgConnectOptions()
+    //         .setHost(env("DB_HOST"))
+    //         .setPort(Integer.parseInt(env("DB_PORT")))
+    //         .setDatabase(env("DB_NAME"))
+    //         .setUser(env("DB_USER"))
+    //         .setPassword(env("DB_PASSWORD"))
+    //         .setSslMode(SslMode.REQUIRE)  // 🔥 REQUIRED FOR NEON
+    //         .setSsl(true)                    // ✅ ADD THIS
+    //         .setTrustAll(true)
+    //         .setHostnameVerificationAlgorithm(""); 
+
+    //     PoolOptions poolOptions = new PoolOptions()
+    //         .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
+
+    //     return PgPool.pool(vertx, connectOptions, poolOptions);
+    // }
+
     public static SqlClient createClient(Vertx vertx) {
+    String url = System.getenv("DATABASE_URL");
 
-        PgConnectOptions connectOptions = new PgConnectOptions()
-            .setHost(env("DB_HOST"))
-            .setPort(Integer.parseInt(env("DB_PORT")))
-            .setDatabase(env("DB_NAME"))
-            .setUser(env("DB_USER"))
-            .setPassword(env("DB_PASSWORD"))
-            .setSslMode(SslMode.REQUIRE)  // 🔥 REQUIRED FOR NEON
-            .setSsl(true)                    // ✅ ADD THIS
-            .setTrustAll(true)
-            .setHostnameVerificationAlgorithm(""); 
+    PgConnectOptions connectOptions = PgConnectOptions.fromUri(url);
 
-        PoolOptions poolOptions = new PoolOptions()
-            .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
+    PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
-        return PgPool.pool(vertx, connectOptions, poolOptions);
-    }
+    return PgPool.pool(vertx, connectOptions, poolOptions);
+}
 }
