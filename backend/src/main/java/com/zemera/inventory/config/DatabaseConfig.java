@@ -32,10 +32,52 @@
 //         return PgPool.pool(vertx, connectOptions, poolOptions);
 //     }
 // }
+
+// todayyyyyyyyyyyy
+// package com.zemera.inventory.config;
+
+// import io.vertx.core.Vertx;
+// import io.vertx.pgclient.PgConnectOptions;
+// import io.vertx.pgclient.PgPool;
+// import io.vertx.sqlclient.PoolOptions;
+// import io.vertx.sqlclient.SqlClient;
+// import io.github.cdimascio.dotenv.Dotenv;
+
+// public class DatabaseConfig {
+
+//     private static String env(String key) {
+//         String value = System.getenv(key);
+//         if (value == null) {
+//             value = Dotenv.load().get(key);
+//         }
+//         if (value == null) {
+//             throw new RuntimeException("Missing environment variable: " + key);
+//         }
+//         return value;
+//     }
+
+//     public static SqlClient createClient(Vertx vertx) {
+
+//         PgConnectOptions connectOptions = new PgConnectOptions()
+//             .setHost(env("DB_HOST"))
+//             .setPort(Integer.parseInt(env("DB_PORT")))
+//             .setDatabase(env("DB_NAME"))
+//             .setUser(env("DB_USER"))
+//             .setPassword(env("DB_PASSWORD"));
+
+//         PoolOptions poolOptions = new PoolOptions()
+//             .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
+
+//         return PgPool.pool(vertx, connectOptions, poolOptions);
+//     }
+// }
+
+
 package com.zemera.inventory.config;
 
 import io.vertx.core.Vertx;
 import io.vertx.pgclient.PgConnectOptions;
+import io.vertx.pgclient.SslMode;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.SqlClient;
@@ -61,7 +103,8 @@ public class DatabaseConfig {
             .setPort(Integer.parseInt(env("DB_PORT")))
             .setDatabase(env("DB_NAME"))
             .setUser(env("DB_USER"))
-            .setPassword(env("DB_PASSWORD"));
+            .setPassword(env("DB_PASSWORD"))
+            .setSslMode(SslMode.REQUIRE);  // 🔥 REQUIRED FOR NEON
 
         PoolOptions poolOptions = new PoolOptions()
             .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
