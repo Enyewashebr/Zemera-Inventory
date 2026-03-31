@@ -207,6 +207,7 @@ vertx.createHttpServer()
     .listen(port, http -> {
         if (http.succeeded()) {
             System.out.println("HTTP server started on port " + port);
+            startPromise.complete();
             
         } else {
             startPromise.fail(http.cause());
