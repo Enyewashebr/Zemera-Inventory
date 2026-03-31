@@ -115,12 +115,32 @@ public class DatabaseConfig {
     //     return PgPool.pool(vertx, connectOptions, poolOptions);
     // }
 
-    public static SqlClient createClient(Vertx vertx) {
-    String url = System.getenv("DATABASE_URL");
+//     public static SqlClient createClient(Vertx vertx) {
+//     String url = System.getenv("DATABASE_URL");
 
-    PgConnectOptions connectOptions = PgConnectOptions.fromUri(url);
+//     PgConnectOptions connectOptions = PgConnectOptions.fromUri(url);
 
-    PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
+//     PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
+
+//     return PgPool.pool(vertx, connectOptions, poolOptions);
+// }
+
+
+public static SqlClient createClient(Vertx vertx) {
+
+    PgConnectOptions connectOptions = new PgConnectOptions()
+        .setHost(env("DB_HOST"))
+        .setPort(Integer.parseInt(env("DB_PORT")))
+        .setDatabase(env("DB_NAME"))
+        .setUser(env("DB_USER"))
+        .setPassword(env("DB_PASSWORD"))
+        .setSslMode(SslMode.REQUIRE)   // 🔥 REQUIRED for Neon
+        .setSsl(true)
+        .setTrustAll(true)
+        .setHostnameVerificationAlgorithm("");
+
+    PoolOptions poolOptions = new PoolOptions()
+        .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
 
     return PgPool.pool(vertx, connectOptions, poolOptions);
 }
