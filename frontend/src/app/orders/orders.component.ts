@@ -180,6 +180,10 @@ export class OrdersComponent implements OnInit {
   confirmPrint() {
     window.print();
     this.showPrintModal = false;
+    // Delay closing modal so content is still visible during print
+  setTimeout(() => {
+    this.showPrintModal = false;
+  }, 500);
   }
 
   cancelPrint() {
