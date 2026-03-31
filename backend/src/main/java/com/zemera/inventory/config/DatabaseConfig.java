@@ -128,16 +128,16 @@ public class DatabaseConfig {
 
 public static SqlClient createClient(Vertx vertx) {
 
-    PgConnectOptions connectOptions = new PgConnectOptions()
-        .setHost(env("DB_HOST"))
-        .setPort(Integer.parseInt(env("DB_PORT")))
-        .setDatabase(env("DB_NAME"))
-        .setUser(env("DB_USER"))
-        .setPassword(env("DB_PASSWORD"))
-        .setSslMode(SslMode.REQUIRE)   // 🔥 REQUIRED for Neon
-        .setSsl(true)
-        .setTrustAll(true)
-        .setHostnameVerificationAlgorithm("");
+   PgConnectOptions connectOptions = new PgConnectOptions()
+    .setHost(env("DB_HOST"))
+    .setPort(Integer.parseInt(env("DB_PORT")))
+    .setDatabase(env("DB_NAME"))
+    .setUser(env("DB_USER"))
+    .setPassword(env("DB_PASSWORD"))
+    .setSslMode(SslMode.REQUIRE); //   // 🔥 REQUIRED for Neon
+        // .setSsl(true)
+        // .setTrustAll(true)
+        // .setHostnameVerificationAlgorithm("");
 
     PoolOptions poolOptions = new PoolOptions()
         .setMaxSize(Integer.parseInt(env("DB_POOL_SIZE")));
